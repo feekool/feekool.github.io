@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getFile, putFile } from './github';
-import { parseFrontmatter, stringifyFrontmatter } from './utils';
+import { parseFrontmatter, stringifyFrontmatter, generateGravatarUrl } from './utils';
 
 export interface User {
   username: string;
@@ -49,10 +49,11 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
         const { data } = parseFrontmatter<User>(file.content);
         userData = { ...data, username };
       } else {
+        const defaultAvatarUrl = await generateGravatarUrl(username);
         userData = {
           username,
           displayName: username,
-          avatar: undefined,
+          avatar: defaultAvatarUrl,
           joinedAt: new Date().toISOString(),
           lang: 'en',
           theme: 'light'

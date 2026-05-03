@@ -4,9 +4,10 @@ import { Loader2, User as UserIcon, Clock, Send, Quote } from 'lucide-react';
 import { Topic, Post, getTopic, listPosts, createPost } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
+import { getFile } from '../lib/github';
 import { MarkdownContent } from '../components/MarkdownContent';
 import { MarkdownEditor } from '../components/MarkdownEditor';
-import { normalizeText } from '../lib/utils';
+import { normalizeText, generateGravatarUrl, parseFrontmatter } from '../lib/utils';
 export function TopicPage() {
   const { id } = useParams<{
     id: string;
@@ -21,6 +22,7 @@ export function TopicPage() {
   const [textSearch, setTextSearch] = useState('');
   const [debouncedAuthorSearch, setDebouncedAuthorSearch] = useState('');
   const [debouncedTextSearch, setDebouncedTextSearch] = useState('');
+  const [authorAvatars, setAuthorAvatars] = useState<Record<string, string>>({});
   const authorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const textTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
@@ -46,11 +48,37 @@ export function TopicPage() {
     setError('');
     try {
       const [topicData, postsData] = await Promise.all([
-      getTopic(id),
-      listPosts(id, { author: debouncedAuthorSearch || undefined, text: debouncedTextSearch || undefined })
+        getTopic(id),
+        listPosts(id, { author: debouncedAuthorSearch || undefined, text: debouncedTextSearch || undefined })
       ]);
       setTopic(topicData);
       setPosts(postsData);
+      
+      // Load avatars for all authors
+      const allAuthors = new Set<string>();
+      if (topicData) allAuthors.add(topicData.author);
+      postsData.forEach(post => allAuthors.add(post.author));
+      
+      const avatars: Record<string, string> = {};
+      for (const author of allAuthors) {
+        try {
+          const file = await getFile(`users/${author}.md`);
+          if (file) {
+            const { data } = parseFrontmatter<any>(file.content);
+            if (data.avatar) {
+              avatars[author] = data.avatar;
+            } else {
+              avatars[author] = await generateGravatarUrl(author);
+            }
+          } else {
+            avatars[author] = await generateGravatarUrl(author);
+          }
+        } catch (err) {
+          // Fallback to Gravatar if user file not found
+          avatars[author] = await generateGravatarUrl(author);
+        }
+      }
+      setAuthorAvatars(avatars);
     } catch (err: any) {
       console.error(err);
       setError(t('error'));
@@ -107,8 +135,16 @@ export function TopicPage() {
       
         <div className="flex flex-col sm:flex-row">
           <div className="bg-gray-50 dark:bg-gray-800/50 p-4 sm:w-48 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 flex flex-col items-center sm:items-start">
-            <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
-              <UserIcon className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden mb-2">
+              {authorAvatars[message.author] ? (
+                <img 
+                  src={authorAvatars[message.author]} 
+                  alt={message.author}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <UserIcon className="w-8 h-8 text-gray-400" />
+              )}
             </div>
             <span className="font-medium text-center sm:text-left w-full break-words">
               {message.author}

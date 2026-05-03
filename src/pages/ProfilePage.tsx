@@ -4,7 +4,7 @@ import { ArrowLeft, Camera, Save, User as UserIcon, Calendar, Globe } from 'luci
 import { useAuth } from '../lib/auth';
 import { useTranslation } from '../lib/i18n';
 import { putFile } from '../lib/github';
-import { stringifyFrontmatter } from '../lib/utils';
+import { stringifyFrontmatter, generateGravatarUrl } from '../lib/utils';
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
@@ -16,6 +16,7 @@ export function ProfilePage() {
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isResettingGravatar, setIsResettingGravatar] = useState(false);
 
   if (!user) {
     navigate('/auth');
@@ -105,6 +106,26 @@ export function ProfilePage() {
     }
   };
 
+  const handleResetGravatar = async () => {
+    setIsResettingGravatar(true);
+    try {
+      const defaultAvatarUrl = await generateGravatarUrl(user.username);
+      const updatedUser = {
+        ...user,
+        avatar: defaultAvatarUrl
+      };
+      const content = stringifyFrontmatter(updatedUser, '');
+      await putFile(`users/${user.username}.md`, content, `Reset avatar to Gravatar for ${user.username}`);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      window.location.reload();
+    } catch (error) {
+      console.error('Error resetting avatar:', error);
+      alert('Failed to reset avatar. Please try again.');
+    } finally {
+      setIsResettingGravatar(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/auth');
@@ -142,11 +163,11 @@ export function ProfilePage() {
               </div>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                disabled={isUploading || isResettingGravatar}
                 className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
                 title="Upload avatar"
               >
-                {isUploading ? (
+                {isUploading || isResettingGravatar ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Camera className="w-4 h-4" />
@@ -248,7 +269,14 @@ export function ProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 space-y-3">
+          <button
+            onClick={handleResetGravatar}
+            disabled={isResettingGravatar}
+            className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors disabled:opacity-50"
+          >
+            {isResettingGravatar ? 'Resetting...' : 'Reset to Gravatar Avatar'}
+          </button>
           <button
             onClick={handleLogout}
             className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"

@@ -81,3 +81,18 @@ export function normalizeText(text: string): string {
     .toLowerCase()
     .trim();
 }
+
+// Simple MD5 implementation for Gravatar
+export async function generateGravatarUrl(username: string, size: number = 200): Promise<string> {
+  const email = `${username.toLowerCase()}@gravatar.local`;
+  const hash = await md5(email.trim().toLowerCase());
+  return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=${size}`;
+}
+
+// Simplified MD5 hash function
+async function md5(str: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
