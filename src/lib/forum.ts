@@ -1,5 +1,5 @@
 import { getFile, putFile, listFiles } from './github';
-import { parseFrontmatter, stringifyFrontmatter, generateId } from './utils';
+import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate } from './utils';
 
 export interface Forum {
   slug: string;
@@ -13,6 +13,7 @@ export interface Forum {
 export interface Topic {
   id: string;
   title: string;
+  titleTranslit: string;
   forumSlug: string;
   author: string;
   createdAt: string;
@@ -90,10 +91,12 @@ export async function getTopic(id: string): Promise<Topic | null> {
   return { ...data, id, body: content };
 }
 
-export async function createTopic(data: Omit<Topic, 'id' | 'createdAt'>) {
+export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleTranslit'>) {
   const id = generateId();
+  const titleTranslit = transliterate(data.title);
   const frontmatterData = {
     title: data.title,
+    titleTranslit: titleTranslit,
     forumSlug: data.forumSlug,
     author: data.author,
     createdAt: new Date().toISOString()
