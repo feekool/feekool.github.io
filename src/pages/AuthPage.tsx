@@ -90,8 +90,8 @@ export function AuthPage() {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md max-w-xs">
-        <div className="bg-white dark:bg-gray-800 py-8 px-4 sm:px-10 mobile-form shadow sm:rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-200">
+      <div className="mt-8 mx-auto w-full max-w-xs sm:max-w-md">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 sm:px-10 mobile-form shadow-lg sm:rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 rounded-lg">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
