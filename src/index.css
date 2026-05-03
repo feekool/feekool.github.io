@@ -41,6 +41,7 @@
     font-size: 16px;
     padding: 0.75rem;
     border-radius: 0.375rem;
+    max-width: min(18rem, 90vw); /* Limit width on mobile for better UX */
   }
 
   .mobile-textarea {
