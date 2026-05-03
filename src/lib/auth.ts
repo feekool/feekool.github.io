@@ -5,6 +5,7 @@ import { parseFrontmatter, stringifyFrontmatter } from './utils';
 export interface User {
   username: string;
   displayName: string;
+  avatar?: string; // URL to avatar image
   joinedAt: string;
   lang: string;
   theme: string;
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
         userData = {
           username,
           displayName: username,
+          avatar: undefined,
           joinedAt: new Date().toISOString(),
           lang: 'en',
           theme: 'light'

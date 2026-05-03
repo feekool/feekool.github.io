@@ -7,7 +7,7 @@ import { Layout } from './components/Layout';
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
 import { ForumPage } from './pages/ForumPage';
-import { TopicPage } from './pages/TopicPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 // Error Boundary component
 class ErrorBoundary extends React.Component<
@@ -72,6 +72,7 @@ function AppRoutes() {
       <Route path="/auth" element={<AuthPage />} />
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forum/:slug" element={<ForumPage />} />
         <Route path="/topic/:id" element={<TopicPage />} />
       </Route>

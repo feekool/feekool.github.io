@@ -44,11 +44,12 @@ export async function putFile(
 path: string,
 content: string,
 message: string,
+isBase64: boolean = false,
 sha?: string)
 {
   const body: any = {
     message,
-    content: utf8_to_b64(content),
+    content: isBase64 ? content : utf8_to_b64(content),
     branch
   };
   if (sha) body.sha = sha;

@@ -31,12 +31,23 @@ export function Layout() {
 
             {user ?
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                    <UserIcon className="w-4 h-4" />
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center overflow-hidden">
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UserIcon className="w-4 h-4" />
+                    )}
                   </div>
                   <span className="hidden sm:inline">{user.displayName}</span>
-                </div>
+                </Link>
                 <button
                 onClick={handleLogout}
                 className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"

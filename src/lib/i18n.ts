@@ -30,7 +30,10 @@ const translations = {
     joined: 'Joined',
     home: 'Home',
     members: 'Members',
-    postReply: 'Post Reply'
+    postReply: 'Post Reply',
+    profile: 'Profile',
+    edit: 'Edit',
+    save: 'Save'
   },
   ru: {
     login: 'Войти',
@@ -60,7 +63,10 @@ const translations = {
     joined: 'Присоединился',
     home: 'Главная',
     members: 'Участники',
-    postReply: 'Отправить'
+    postReply: 'Отправить',
+    profile: 'Профиль',
+    edit: 'Изменить',
+    save: 'Сохранить'
   }
 };
 
