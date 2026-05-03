@@ -42,7 +42,8 @@ const translations = {
     link: 'Link',
     list: 'Bullet List',
     orderedList: 'Numbered List',
-    quote: 'Quote'
+    quote: 'Quote',
+    said: 'said'
   },
   ru: {
     login: 'Войти',
@@ -84,7 +85,8 @@ const translations = {
     link: 'Ссылка',
     list: 'Маркированный список',
     orderedList: 'Нумерованный список',
-    quote: 'Цитата'
+    quote: 'Цитата',
+    said: 'сказал'
   }
 };
 

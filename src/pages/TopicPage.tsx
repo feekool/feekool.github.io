@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Loader2, User as UserIcon, Clock, Send } from 'lucide-react';
+import { Loader2, User as UserIcon, Clock, Send, Quote } from 'lucide-react';
 import { Topic, Post, getTopic, listPosts, createPost } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
@@ -61,6 +61,10 @@ export function TopicPage() {
       setIsReplying(false);
     }
   };
+  const handleQuote = (author: string, body: string) => {
+    const quote = `> ${author} ${t('said')}:\n> ${body.replace(/\n/g, '\n> ')}\n\n`;
+    setReplyBody(prev => prev + quote);
+  };
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -107,6 +111,15 @@ export function TopicPage() {
           </div>
           <div className="p-6 flex-1">
             <MarkdownContent content={topic.body} />
+            {user && (
+              <button
+                onClick={() => handleQuote(topic.author, topic.body)}
+                className="mt-2 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded flex items-center gap-1"
+              >
+                <Quote className="w-3 h-3" />
+                {t('quote')}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -132,6 +145,15 @@ export function TopicPage() {
             </div>
             <div className="p-6 flex-1">
               <MarkdownContent content={post.body} />
+              {user && (
+                <button
+                  onClick={() => handleQuote(post.author, post.body)}
+                  className="mt-2 px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded flex items-center gap-1"
+                >
+                  <Quote className="w-3 h-3" />
+                  {t('quote')}
+                </button>
+              )}
             </div>
           </div>
         </div>
