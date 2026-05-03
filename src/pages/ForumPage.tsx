@@ -10,6 +10,7 @@ import {
 import { Forum, Topic, getForum, listTopics, createTopic } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
+import { MarkdownEditor } from '../components/MarkdownEditor';
 export function ForumPage() {
   const { slug } = useParams<{
     slug: string;
@@ -169,12 +170,12 @@ export function ForumPage() {
                 <label className="block text-sm font-medium mb-1">
                   {t('content')}
                 </label>
-                <textarea
-                required
-                value={newTopicBody}
-                onChange={(e) => setNewTopicBody(e.target.value)}
-                className="w-full mobile-textarea border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 resize-none font-mono text-sm"
-                placeholder="Markdown supported..." />
+                <MarkdownEditor
+                  value={newTopicBody}
+                  onChange={setNewTopicBody}
+                  placeholder="Markdown supported..."
+                  rows={8}
+                />
               
               </div>
               <div className="flex justify-end gap-3 mt-6">

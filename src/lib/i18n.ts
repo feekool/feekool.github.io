@@ -33,7 +33,16 @@ const translations = {
     postReply: 'Post Reply',
     profile: 'Profile',
     edit: 'Edit',
-    save: 'Save'
+    save: 'Save',
+    preview: 'Preview',
+    hidePreview: 'Hide Preview',
+    bold: 'Bold',
+    italic: 'Italic',
+    code: 'Code',
+    link: 'Link',
+    list: 'Bullet List',
+    orderedList: 'Numbered List',
+    quote: 'Quote'
   },
   ru: {
     login: 'Войти',
@@ -66,7 +75,16 @@ const translations = {
     postReply: 'Отправить',
     profile: 'Профиль',
     edit: 'Изменить',
-    save: 'Сохранить'
+    save: 'Сохранить',
+    preview: 'Предпросмотр',
+    hidePreview: 'Скрыть предпросмотр',
+    bold: 'Жирный',
+    italic: 'Курсив',
+    code: 'Код',
+    link: 'Ссылка',
+    list: 'Маркированный список',
+    orderedList: 'Нумерованный список',
+    quote: 'Цитата'
   }
 };
 

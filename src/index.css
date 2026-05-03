@@ -68,3 +68,73 @@ body {
   height: 100%;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Markdown and code highlighting styles */
+.prose {
+  color: inherit;
+}
+
+.prose code {
+  background-color: rgb(243 244 246);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.dark .prose code {
+  background-color: rgb(31 41 55);
+}
+
+.prose pre {
+  background-color: rgb(17 24 39);
+  color: rgb(229 231 235);
+  overflow-x: auto;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.prose blockquote {
+  border-left: 4px solid rgb(59 130 246);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: rgb(107 114 128);
+}
+
+.dark .prose blockquote {
+  color: rgb(156 163 175);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid rgb(209 213 219);
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+
+.dark .prose th,
+.dark .prose td {
+  border-color: rgb(55 65 81);
+}
+
+.prose th {
+  background-color: rgb(249 250 251);
+  font-weight: 600;
+}
+
+.dark .prose th {
+  background-color: rgb(31 41 55);
+}

@@ -4,6 +4,7 @@ import { MessageSquare, Plus, Loader2 } from 'lucide-react';
 import { Forum, listForums, createForum } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
+import { MarkdownEditor } from '../components/MarkdownEditor';
 export function HomePage() {
   const [forums, setForums] = useState<Forum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -139,11 +140,12 @@ export function HomePage() {
                 <label className="block text-sm font-medium mb-1">
                   {t('description')}
                 </label>
-                <textarea
-                required
-                value={newForumDesc}
-                onChange={(e) => setNewForumDesc(e.target.value)}
-                className="w-full mobile-textarea border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 resize-none" />
+                <MarkdownEditor
+                  value={newForumDesc}
+                  onChange={setNewForumDesc}
+                  placeholder="Describe your forum..."
+                  rows={4}
+                />
               
               </div>
               <div className="flex justify-end gap-3 mt-6">

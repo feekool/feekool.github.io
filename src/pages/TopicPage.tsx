@@ -4,6 +4,8 @@ import { Loader2, User as UserIcon, Clock, Send } from 'lucide-react';
 import { Topic, Post, getTopic, listPosts, createPost } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
+import { MarkdownContent } from '../components/MarkdownContent';
+import { MarkdownEditor } from '../components/MarkdownEditor';
 export function TopicPage() {
   const { id } = useParams<{
     id: string;
@@ -103,8 +105,8 @@ export function TopicPage() {
               {new Date(topic.createdAt).toLocaleDateString()}
             </span>
           </div>
-          <div className="p-6 flex-1 prose dark:prose-invert max-w-none">
-            <div className="whitespace-pre-wrap font-sans">{topic.body}</div>
+          <div className="p-6 flex-1">
+            <MarkdownContent content={topic.body} />
           </div>
         </div>
       </div>
@@ -128,8 +130,8 @@ export function TopicPage() {
                 {new Date(post.createdAt).toLocaleDateString()}
               </span>
             </div>
-            <div className="p-6 flex-1 prose dark:prose-invert max-w-none">
-              <div className="whitespace-pre-wrap font-sans">{post.body}</div>
+            <div className="p-6 flex-1">
+              <MarkdownContent content={post.body} />
             </div>
           </div>
         </div>
@@ -140,12 +142,13 @@ export function TopicPage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mobile-form mt-8">
           <h3 className="text-lg font-medium mb-4">{t('postReply')}</h3>
           <form onSubmit={handleReply}>
-            <textarea
-            required
-            value={replyBody}
-            onChange={(e) => setReplyBody(e.target.value)}
-            className="w-full mobile-textarea border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 resize-none font-mono text-sm mb-4"
-            placeholder="Write your reply..." />
+            <MarkdownEditor
+              value={replyBody}
+              onChange={setReplyBody}
+              placeholder="Write your reply..."
+              className="mb-4"
+              rows={4}
+            />
           
             <div className="flex justify-end">
               <button
