@@ -125,35 +125,36 @@ export function MarkdownEditor({
   return (
     <div className={`border border-gray-300 dark:border-gray-600 rounded-md ${isMobile ? 'markdown-editor-mobile' : ''} ${className}`}>
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-md">
-        {toolbarButtons.map((button, index) => (
-          <button
-            key={index}
-            onClick={button.action}
-            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-            title={`${button.label} (${button.shortcut})`}
-            type="button"
-          >
-            <button.icon className="w-4 h-4" />
-          </button>
-        ))}
+      <div className={`border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-md ${isMobile ? 'p-1' : 'p-2'}`}>
+        <div className={`flex items-center gap-1 ${isMobile ? 'flex-wrap' : ''}`}>
+          {toolbarButtons.map((button, index) => (
+            <button
+              key={index}
+              onClick={button.action}
+              className={`p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors ${isMobile ? 'flex-shrink-0' : ''}`}
+              title={`${button.label} (${button.shortcut})`}
+              type="button"
+            >
+              <button.icon className="w-4 h-4" />
+            </button>
+          ))}
 
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className={`p-1.5 rounded transition-colors ${
-              showPreview
-                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-            title={showPreview ? t('hidePreview') : t('preview')}
-            type="button"
-          >
-            {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
+          <div className={`ml-auto flex items-center gap-1 ${isMobile ? 'w-full justify-end mt-1' : ''}`}>
+            <button
+              onClick={() => setShowPreview(!showPreview)}
+              className={`p-1.5 rounded transition-colors ${
+                showPreview
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+              title={showPreview ? t('hidePreview') : t('preview')}
+              type="button"
+            >
+              {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </div>
-
       {/* Editor/Preview */}
       <div className="relative">
         {showPreview ? (
