@@ -91,20 +91,3 @@
 - **Таблицы и многое другое**
 
 Подробное описание: см. [MARKDOWN_SUPPORT.md](./MARKDOWN_SUPPORT.md)
-
-## Исправления ошибок
-
-### Ошибка "cant find variable topic page"
-
-**Симптомы:** JavaScript ошибка при открытии страниц топиков
-
-**Причина:** Отсутствующий импорт `TopicPage` в `App.tsx`
-
-**Решение:** Добавлен импорт компонента `TopicPage`
-
-**Статус:** ✅ **Исправлено**
-
-Подробное описание: см. [BUGFIX_TOPICPAGE.md](./BUGFIX_TOPICPAGE.md)
-```
-
-Подробное описание: см. [TRANSLITERATION.md](./TRANSLITERATION.md)
