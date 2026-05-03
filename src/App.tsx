@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
 import { ForumPage } from './pages/ForumPage';
+import { TopicPage } from './pages/TopicPage';
 import { ProfilePage } from './pages/ProfilePage';
 
 // Error Boundary component

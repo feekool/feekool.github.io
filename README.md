@@ -71,6 +71,20 @@
 4. Редактирование отображаемого имени
 
 Подробное описание: см. [USER_PROFILE.md](./USER_PROFILE.md)
+
+## Исправления ошибок
+
+### Ошибка "cant find variable topic page"
+
+**Симптомы:** JavaScript ошибка при открытии страниц топиков
+
+**Причина:** Отсутствующий импорт `TopicPage` в `App.tsx`
+
+**Решение:** Добавлен импорт компонента `TopicPage`
+
+**Статус:** ✅ **Исправлено**
+
+Подробное описание: см. [BUGFIX_TOPICPAGE.md](./BUGFIX_TOPICPAGE.md)
 ```
 
 Подробное описание: см. [TRANSLITERATION.md](./TRANSLITERATION.md)
