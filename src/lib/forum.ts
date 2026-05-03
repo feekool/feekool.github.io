@@ -1,5 +1,5 @@
 import { getFile, putFile, listFiles } from './github';
-import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate } from './utils';
+import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate, normalizeText } from './utils';
 
 export interface Forum {
   slug: string;
@@ -26,6 +26,22 @@ export interface Post {
   author: string;
   createdAt: string;
   body: string;
+}
+
+function matchesSearch(item: { author: string; body: string }, options?: { author?: string; text?: string }): boolean {
+  if (!options) return true;
+  const { author: authorQuery, text: textQuery } = options;
+  if (authorQuery) {
+    const normalizedAuthor = normalizeText(item.author);
+    const normalizedQuery = normalizeText(authorQuery);
+    if (!normalizedAuthor.includes(normalizedQuery)) return false;
+  }
+  if (textQuery) {
+    const normalizedBody = normalizeText(item.body);
+    const normalizedQuery = normalizeText(textQuery);
+    if (!normalizedBody.includes(normalizedQuery)) return false;
+  }
+  return true;
 }
 
 export async function listForums(): Promise<Forum[]> {
@@ -66,7 +82,7 @@ export async function createForum(data: Omit<Forum, 'slug'> & {slug: string}): P
   };
 }
 
-export async function listTopics(forumSlug: string): Promise<Topic[]> {
+export async function listTopics(forumSlug: string, options?: { author?: string; text?: string }): Promise<Topic[]> {
   const files = await listFiles('topics');
   const topics: Topic[] = [];
 
@@ -76,11 +92,14 @@ export async function listTopics(forumSlug: string): Promise<Topic[]> {
       if (fileData) {
         const { data, content } = parseFrontmatter<Topic>(fileData.content);
         if (data.forumSlug === forumSlug) {
-          topics.push({
+          const topic = {
             ...data,
             id: file.name.replace('.md', ''),
             body: content
-          });
+          };
+          if (matchesSearch(topic, options)) {
+            topics.push(topic);
+          }
         }
       }
     }
@@ -123,7 +142,7 @@ export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleT
   };
 }
 
-export async function listPosts(topicId: string): Promise<Post[]> {
+export async function listPosts(topicId: string, options?: { author?: string; text?: string }): Promise<Post[]> {
   const files = await listFiles('posts');
   const posts: Post[] = [];
 
@@ -133,11 +152,14 @@ export async function listPosts(topicId: string): Promise<Post[]> {
       if (fileData) {
         const { data, content } = parseFrontmatter<Post>(fileData.content);
         if (data.topicId === topicId) {
-          posts.push({
+          const post = {
             ...data,
             id: file.name.replace('.md', ''),
             body: content
-          });
+          };
+          if (matchesSearch(post, options)) {
+            posts.push(post);
+          }
         }
       }
     }

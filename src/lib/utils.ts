@@ -60,3 +60,7 @@ export function transliterate(text: string): string {
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+export function normalizeText(text: string): string {
+  return transliterate(text).toLowerCase();
+}

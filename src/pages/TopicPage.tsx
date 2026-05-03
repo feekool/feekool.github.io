@@ -6,6 +6,7 @@ import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
 import { MarkdownContent } from '../components/MarkdownContent';
 import { MarkdownEditor } from '../components/MarkdownEditor';
+import { normalizeText } from '../lib/utils';
 export function TopicPage() {
   const { id } = useParams<{
     id: string;
@@ -27,8 +28,8 @@ export function TopicPage() {
     try {
       const [topicData, postsData] = await Promise.all([
       getTopic(id),
-      listPosts(id)]
-      );
+      listPosts(id, { author: authorSearch || undefined, text: textSearch || undefined })
+      ]);
       setTopic(topicData);
       setPosts(postsData);
     } catch (err: any) {
@@ -40,14 +41,14 @@ export function TopicPage() {
   };
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [id, authorSearch, textSearch]);
   const allMessages = topic ? [
     { id: 'original', author: topic.author, body: topic.body, createdAt: topic.createdAt },
     ...posts
   ] : [];
   const filteredMessages = allMessages.filter(message =>
-    (authorSearch === '' || message.author.toLowerCase().includes(authorSearch.toLowerCase())) &&
-    (textSearch === '' || message.body.toLowerCase().includes(textSearch.toLowerCase()))
+    (authorSearch === '' || normalizeText(message.author).includes(normalizeText(authorSearch))) &&
+    (textSearch === '' || normalizeText(message.body).includes(normalizeText(textSearch)))
   );
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();

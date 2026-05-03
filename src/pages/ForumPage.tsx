@@ -34,8 +34,8 @@ export function ForumPage() {
     try {
       const [forumData, topicsData] = await Promise.all([
       getForum(slug),
-      listTopics(slug)]
-      );
+      listTopics(slug, { author: authorSearch || undefined, text: textSearch || undefined })
+      ]);
       setForum(forumData);
       setTopics(topicsData);
     } catch (err: any) {
@@ -47,11 +47,7 @@ export function ForumPage() {
   };
   useEffect(() => {
     loadData();
-  }, [slug]);
-  const filteredTopics = topics.filter(topic =>
-    (authorSearch === '' || topic.author.toLowerCase().includes(authorSearch.toLowerCase())) &&
-    (textSearch === '' || topic.body.toLowerCase().includes(textSearch.toLowerCase()))
-  );
+  }, [slug, authorSearch, textSearch]);
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !slug) return;
@@ -149,7 +145,7 @@ export function ForumPage() {
           </div> :
 
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredTopics.map((topic) =>
+            {topics.map((topic) =>
           <Link
             key={topic.id}
             to={`/topic/${topic.id}`}
