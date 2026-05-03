@@ -119,6 +119,24 @@ export function HomePage() {
         </div>
       }
 
+      {/* Welcome Info Box */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
+        <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-3">
+          {t('welcomeTitle')}
+        </h2>
+        <p className="text-blue-800 dark:text-blue-200 mb-4">
+          {t('welcomeMessage')}
+        </p>
+        <div className="border-t border-blue-200 dark:border-blue-700 pt-4">
+          <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-2">
+            {t('featuresTitle')}
+          </h3>
+          <p className="text-blue-700 dark:text-blue-300 text-sm">
+            {t('featuresList')}
+          </p>
+        </div>
+      </div>
+
       {showCreateModal &&
       <div className="modal-overlay">
         <div className="modal-content">

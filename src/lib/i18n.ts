@@ -43,7 +43,11 @@ const translations = {
     list: 'Bullet List',
     orderedList: 'Numbered List',
     quote: 'Quote',
-    said: 'said'
+    said: 'said',
+    welcomeTitle: 'Welcome to the Forum Template',
+    welcomeMessage: 'This is a modern forum application built with React, TypeScript, and Tailwind CSS. You can use this as a template to create your own forum.',
+    featuresTitle: 'Features',
+    featuresList: 'User authentication, Markdown support, Dark mode, Mobile responsive, Multi-language support'
   },
   ru: {
     login: 'Войти',
@@ -86,7 +90,11 @@ const translations = {
     list: 'Маркированный список',
     orderedList: 'Нумерованный список',
     quote: 'Цитата',
-    said: 'сказал'
+    said: 'сказал',
+    welcomeTitle: 'Добро пожаловать в шаблон форума',
+    welcomeMessage: 'Это современное форумное приложение, созданное с помощью React, TypeScript и Tailwind CSS. Вы можете использовать это как шаблон для создания своего собственного форума.',
+    featuresTitle: 'Возможности',
+    featuresList: 'Аутентификация пользователей, Поддержка Markdown, Темная тема, Адаптивность для мобильных, Поддержка нескольких языков'
   }
 };
 
