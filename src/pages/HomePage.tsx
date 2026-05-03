@@ -35,11 +35,12 @@ export function HomePage() {
     if (!user) return;
     setIsCreating(true);
     try {
-      const slug = newForumTitle.
-      toLowerCase().
-      replace(/[^a-z0-9]+/g, '-').
-      replace(/(^-|-$)+/g, '');
-      await createForum({
+      const slug = newForumTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      
+      const newForum = await createForum({
         slug,
         title: newForumTitle,
         description: newForumDesc,
@@ -47,10 +48,13 @@ export function HomePage() {
         createdBy: user.username,
         createdAt: new Date().toISOString()
       });
+      
+      // Добавляем новый форум в список
+      setForums(prevForums => [...prevForums, newForum]);
+      
       setShowCreateModal(false);
       setNewForumTitle('');
       setNewForumDesc('');
-      await loadForums();
     } catch (err: any) {
       console.error(err);
       alert(t('error'));

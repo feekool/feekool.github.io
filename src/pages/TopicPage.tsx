@@ -42,13 +42,16 @@ export function TopicPage() {
     if (!user || !id || !replyBody.trim()) return;
     setIsReplying(true);
     try {
-      await createPost({
+      const newPost = await createPost({
         topicId: id,
         author: user.username,
         body: replyBody
       });
+      
+      // Добавляем новый пост в конец списка
+      setPosts(prevPosts => [...prevPosts, newPost]);
+      
       setReplyBody('');
-      await loadData();
     } catch (err: any) {
       console.error(err);
       alert(t('error'));

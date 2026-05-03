@@ -52,11 +52,18 @@ export async function getForum(slug: string): Promise<Forum | null> {
   return { ...data, slug };
 }
 
-export async function createForum(
-data: Omit<Forum, 'slug'> & {slug: string;})
-{
+export async function createForum(data: Omit<Forum, 'slug'> & {slug: string}): Promise<Forum> {
   const content = stringifyFrontmatter(data, '');
   await putFile(`forums/${data.slug}.md`, content, `Create forum ${data.title}`);
+  
+  return {
+    slug: data.slug,
+    title: data.title,
+    description: data.description,
+    order: data.order,
+    createdBy: data.createdBy,
+    createdAt: data.createdAt
+  };
 }
 
 export async function listTopics(forumSlug: string): Promise<Topic[]> {
@@ -91,19 +98,29 @@ export async function getTopic(id: string): Promise<Topic | null> {
   return { ...data, id, body: content };
 }
 
-export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleTranslit'>) {
+export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleTranslit'>): Promise<Topic> {
   const id = generateId();
   const titleTranslit = transliterate(data.title);
+  const createdAt = new Date().toISOString();
   const frontmatterData = {
     title: data.title,
     titleTranslit: titleTranslit,
     forumSlug: data.forumSlug,
     author: data.author,
-    createdAt: new Date().toISOString()
+    createdAt: createdAt
   };
   const content = stringifyFrontmatter(frontmatterData, data.body);
   await putFile(`topics/${id}.md`, content, `Create topic ${data.title}`);
-  return id;
+  
+  return {
+    id,
+    title: data.title,
+    titleTranslit,
+    forumSlug: data.forumSlug,
+    author: data.author,
+    createdAt,
+    body: data.body
+  };
 }
 
 export async function listPosts(topicId: string): Promise<Post[]> {
@@ -131,12 +148,13 @@ export async function listPosts(topicId: string): Promise<Post[]> {
   );
 }
 
-export async function createPost(data: Omit<Post, 'id' | 'createdAt'>) {
+export async function createPost(data: Omit<Post, 'id' | 'createdAt'>): Promise<Post> {
   const id = generateId();
+  const createdAt = new Date().toISOString();
   const frontmatterData = {
     topicId: data.topicId,
     author: data.author,
-    createdAt: new Date().toISOString()
+    createdAt: createdAt
   };
   const content = stringifyFrontmatter(frontmatterData, data.body);
   await putFile(
@@ -144,5 +162,12 @@ export async function createPost(data: Omit<Post, 'id' | 'createdAt'>) {
     content,
     `Create post in topic ${data.topicId}`
   );
-  return id;
+  
+  return {
+    id,
+    topicId: data.topicId,
+    author: data.author,
+    createdAt,
+    body: data.body
+  };
 }

@@ -50,16 +50,19 @@ export function ForumPage() {
     if (!user || !slug) return;
     setIsCreating(true);
     try {
-      await createTopic({
+      const newTopic = await createTopic({
         title: newTopicTitle,
         forumSlug: slug,
         author: user.username,
         body: newTopicBody
       });
+      
+      // Добавляем новый топик в начало списка (новые сверху)
+      setTopics(prevTopics => [newTopic, ...prevTopics]);
+      
       setShowCreateModal(false);
       setNewTopicTitle('');
       setNewTopicBody('');
-      await loadData();
     } catch (err: any) {
       console.error(err);
       alert(t('error'));
