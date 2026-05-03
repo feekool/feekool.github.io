@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Plus,
@@ -25,8 +25,27 @@ export function ForumPage() {
   const [newTopicBody, setNewTopicBody] = useState('');
   const [authorSearch, setAuthorSearch] = useState('');
   const [textSearch, setTextSearch] = useState('');
+  const [debouncedAuthorSearch, setDebouncedAuthorSearch] = useState('');
+  const [debouncedTextSearch, setDebouncedTextSearch] = useState('');
+  const authorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const textTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (authorTimeoutRef.current) clearTimeout(authorTimeoutRef.current);
+    authorTimeoutRef.current = setTimeout(() => {
+      setDebouncedAuthorSearch(authorSearch);
+    }, 300);
+  }, [authorSearch]);
+
+  useEffect(() => {
+    if (textTimeoutRef.current) clearTimeout(textTimeoutRef.current);
+    textTimeoutRef.current = setTimeout(() => {
+      setDebouncedTextSearch(textSearch);
+    }, 300);
+  }, [textSearch]);
+
   const loadData = async () => {
     if (!slug) return;
     setIsLoading(true);
@@ -34,7 +53,7 @@ export function ForumPage() {
     try {
       const [forumData, topicsData] = await Promise.all([
       getForum(slug),
-      listTopics(slug, { author: authorSearch || undefined, text: textSearch || undefined })
+      listTopics(slug, { author: debouncedAuthorSearch || undefined, text: debouncedTextSearch || undefined })
       ]);
       setForum(forumData);
       setTopics(topicsData);
@@ -47,7 +66,7 @@ export function ForumPage() {
   };
   useEffect(() => {
     loadData();
-  }, [slug, authorSearch, textSearch]);
+  }, [slug, debouncedAuthorSearch, debouncedTextSearch]);
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !slug) return;

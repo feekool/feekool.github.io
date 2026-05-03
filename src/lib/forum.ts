@@ -39,7 +39,8 @@ function matchesSearch(item: { author: string; body: string }, options?: { autho
   if (textQuery) {
     const normalizedBody = normalizeText(item.body);
     const normalizedQuery = normalizeText(textQuery);
-    if (!normalizedBody.includes(normalizedQuery)) return false;
+    const words = normalizedBody.split(/\s+/);
+    if (!words.some(word => word.startsWith(normalizedQuery))) return false;
   }
   return true;
 }

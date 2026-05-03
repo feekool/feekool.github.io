@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Loader2, User as UserIcon, Clock, Send, Quote } from 'lucide-react';
 import { Topic, Post, getTopic, listPosts, createPost } from '../lib/forum';
@@ -19,8 +19,27 @@ export function TopicPage() {
   const [isReplying, setIsReplying] = useState(false);
   const [authorSearch, setAuthorSearch] = useState('');
   const [textSearch, setTextSearch] = useState('');
+  const [debouncedAuthorSearch, setDebouncedAuthorSearch] = useState('');
+  const [debouncedTextSearch, setDebouncedTextSearch] = useState('');
+  const authorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const textTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (authorTimeoutRef.current) clearTimeout(authorTimeoutRef.current);
+    authorTimeoutRef.current = setTimeout(() => {
+      setDebouncedAuthorSearch(authorSearch);
+    }, 300);
+  }, [authorSearch]);
+
+  useEffect(() => {
+    if (textTimeoutRef.current) clearTimeout(textTimeoutRef.current);
+    textTimeoutRef.current = setTimeout(() => {
+      setDebouncedTextSearch(textSearch);
+    }, 300);
+  }, [textSearch]);
+
   const loadData = async () => {
     if (!id) return;
     setIsLoading(true);
@@ -28,7 +47,7 @@ export function TopicPage() {
     try {
       const [topicData, postsData] = await Promise.all([
       getTopic(id),
-      listPosts(id, { author: authorSearch || undefined, text: textSearch || undefined })
+      listPosts(id, { author: debouncedAuthorSearch || undefined, text: debouncedTextSearch || undefined })
       ]);
       setTopic(topicData);
       setPosts(postsData);
@@ -41,14 +60,19 @@ export function TopicPage() {
   };
   useEffect(() => {
     loadData();
-  }, [id, authorSearch, textSearch]);
+  }, [id, debouncedAuthorSearch, debouncedTextSearch]);
   const allMessages = topic ? [
     { id: 'original', author: topic.author, body: topic.body, createdAt: topic.createdAt },
     ...posts
   ] : [];
   const filteredMessages = allMessages.filter(message =>
-    (authorSearch === '' || normalizeText(message.author).includes(normalizeText(authorSearch))) &&
-    (textSearch === '' || normalizeText(message.body).includes(normalizeText(textSearch)))
+    (debouncedAuthorSearch === '' || normalizeText(message.author).includes(normalizeText(debouncedAuthorSearch))) &&
+    (debouncedTextSearch === '' || (() => {
+      const normalizedBody = normalizeText(message.body);
+      const normalizedQuery = normalizeText(debouncedTextSearch);
+      const words = normalizedBody.split(/\s+/);
+      return words.some(word => word.startsWith(normalizedQuery));
+    })())
   );
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
