@@ -19,8 +19,19 @@ export function MarkdownEditor({
   rows = 6
 }: MarkdownEditorProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const insertText = (before: string, after: string = '', placeholder: string = '') => {
     const textarea = textareaRef.current;
@@ -112,7 +123,7 @@ export function MarkdownEditor({
   };
 
   return (
-    <div className={`border border-gray-300 dark:border-gray-600 rounded-md ${className}`}>
+    <div className={`border border-gray-300 dark:border-gray-600 rounded-md ${isMobile ? 'markdown-editor-mobile' : ''} ${className}`}>
       {/* Toolbar */}
       <div className="flex items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-md">
         {toolbarButtons.map((button, index) => (
@@ -161,7 +172,7 @@ export function MarkdownEditor({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={rows}
-            className="w-full p-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-b-md"
+            className={`w-full p-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-b-md ${isMobile ? 'max-w-full box-border' : ''}`}
           />
         )}
       </div>
