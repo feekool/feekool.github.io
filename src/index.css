@@ -50,6 +50,42 @@
     min-height: 120px;
     resize: vertical;
   }
+
+  /* Modal scroll fixes for mobile */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-content {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-dialog {
+    width: 100%;
+    max-width: 28rem; /* max-w-md */
+    max-height: none;
+    margin: auto;
+  }
+
+  @media screen and (min-width: 768px) {
+    .modal-content {
+      min-height: auto;
+      padding: 2rem;
+    }
+
+    .modal-dialog {
+      max-width: 42rem; /* max-w-2xl for larger modals */
+    }
+  }
 }
 
 /* Global mobile optimizations */

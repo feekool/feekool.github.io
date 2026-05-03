@@ -120,54 +120,58 @@ export function HomePage() {
       }
 
       {showCreateModal &&
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full mobile-form shadow-xl">
-            <h2 className="text-xl font-bold mb-4">{t('createBoard')}</h2>
-            <form onSubmit={handleCreateForum} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  {t('title')}
-                </label>
-                <input
-                type="text"
-                required
-                value={newForumTitle}
-                onChange={(e) => setNewForumTitle(e.target.value)}
-                className="w-full mobile-input border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700" />
-              
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  {t('description')}
-                </label>
-                <MarkdownEditor
-                  value={newForumDesc}
-                  onChange={setNewForumDesc}
-                  placeholder="Describe your forum..."
-                  rows={4}
-                />
-              
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <div className="bg-white dark:bg-gray-800 rounded-lg modal-dialog shadow-xl">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4">{t('createBoard')}</h2>
+              <form onSubmit={handleCreateForum} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {t('title')}
+                  </label>
+                  <input
+                  type="text"
+                  required
+                  value={newForumTitle}
+                  onChange={(e) => setNewForumTitle(e.target.value)}
+                  className="w-full mobile-input border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700" />
                 
-                  {t('cancel')}
-                </button>
-                <button
-                type="submit"
-                disabled={isCreating}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 disabled:opacity-50">
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {t('description')}
+                  </label>
+                  <MarkdownEditor
+                    value={newForumDesc}
+                    onChange={setNewForumDesc}
+                    placeholder="Describe your forum..."
+                    rows={4}
+                  />
                 
-                  {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {t('create')}
-                </button>
-              </div>
-            </form>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                  
+                    {t('cancel')}
+                  </button>
+                  <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 disabled:opacity-50">
+                  
+                    {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {t('create')}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
+      </div>
       }
     </div>);
 
