@@ -116,7 +116,7 @@ export function HomePage() {
 
       {showCreateModal &&
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 shadow-xl">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full mobile-form shadow-xl">
             <h2 className="text-xl font-bold mb-4">{t('createBoard')}</h2>
             <form onSubmit={handleCreateForum} className="space-y-4">
               <div>
@@ -128,7 +128,7 @@ export function HomePage() {
                 required
                 value={newForumTitle}
                 onChange={(e) => setNewForumTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700" />
+                className="w-full mobile-input border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700" />
               
               </div>
               <div>
@@ -139,7 +139,7 @@ export function HomePage() {
                 required
                 value={newForumDesc}
                 onChange={(e) => setNewForumDesc(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 h-24 resize-none" />
+                className="w-full mobile-textarea border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 resize-none" />
               
               </div>
               <div className="flex justify-end gap-3 mt-6">

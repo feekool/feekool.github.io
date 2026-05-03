@@ -134,21 +134,21 @@ export function TopicPage() {
 
       {/* Reply Form */}
       {user ?
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mt-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mobile-form mt-8">
           <h3 className="text-lg font-medium mb-4">{t('postReply')}</h3>
           <form onSubmit={handleReply}>
             <textarea
             required
             value={replyBody}
             onChange={(e) => setReplyBody(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 h-32 resize-none font-mono text-sm mb-4"
+            className="w-full mobile-textarea border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 resize-none font-mono text-sm mb-4"
             placeholder="Write your reply..." />
           
             <div className="flex justify-end">
               <button
               type="submit"
               disabled={isReplying || !replyBody.trim()}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 disabled:opacity-50">
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 disabled:opacity-50 min-h-[44px]">
               
                 {isReplying ?
               <Loader2 className="w-4 h-4 animate-spin" /> :

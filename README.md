@@ -20,4 +20,22 @@
 Транслитерация: "kak-ispolzovat-freymuork"
 ```
 
+### Мобильная адаптация
+
+Приложение оптимизировано для мобильных устройств:
+
+- ✅ Предотвращение нежелательного зума при вводе текста
+- ✅ Оптимизированные touch targets (минимум 44px)
+- ✅ Адаптивные формы для мобильных экранов
+- ✅ Поддержка устройств с вырезами (notch)
+- ✅ Совместимость с iOS Safari и Android Chrome
+
+**Технические решения:**
+- Viewport meta tag с `maximum-scale=1.0` и `user-scalable=no`
+- CSS правила для предотвращения зума на фокус
+- Font-size 16px для input полей (iOS Safari requirement)
+
+Подробное описание: см. [MOBILE_ADAPTATION.md](./MOBILE_ADAPTATION.md)
+```
+
 Подробное описание: см. [TRANSLITERATION.md](./TRANSLITERATION.md)
