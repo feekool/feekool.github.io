@@ -1,0 +1,65 @@
+import React from 'react';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { MessageSquare, LogOut, User as UserIcon } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
+import { LanguageToggle } from './LanguageToggle';
+import { useAuth } from '../lib/auth';
+import { useTranslation } from '../lib/i18n';
+export function Layout() {
+  const { user, logout } = useAuth();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-xl">
+            
+            <MessageSquare className="w-6 h-6" />
+            <span>Feekool</span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <LanguageToggle />
+            <ThemeToggle />
+
+            {user ?
+            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <UserIcon className="w-4 h-4" />
+                  </div>
+                  <span className="hidden sm:inline">{user.displayName}</span>
+                </div>
+                <button
+                onClick={handleLogout}
+                className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                title={t('logout')}>
+                
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div> :
+
+            <Link
+              to="/auth"
+              className="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+              
+                {t('login')}
+              </Link>
+            }
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        <Outlet />
+      </main>
+    </div>);
+
+}
