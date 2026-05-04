@@ -9,7 +9,7 @@ This application includes automatic bundle size reporting in the browser console
 📦 Bundle Size: 245.67 KB (12 JS files, 3 CSS files)
 
 🌟 GitHub Forum Platform v0.0.1
-   Template created by: Sergey Fedoseev
+   Template created by: Semyon Fedoseev
    GitHub: https://github.com/fedoseevsm
    Contact: Feel free to reach out for questions or contributions!
 
