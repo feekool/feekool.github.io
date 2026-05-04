@@ -22,6 +22,28 @@ function b64_to_utf8(str: string) {
   return decodeURIComponent(escape(atob(str)));
 }
 
+async function createGitHubError(res: Response): Promise<Error> {
+  const statusText = res.statusText || 'Unknown error';
+  let detail = '';
+  try {
+    const json = await res.json();
+    if (json && typeof json === 'object' && 'message' in json) {
+      detail = String((json as any).message);
+    } else if (typeof json === 'string') {
+      detail = json;
+    }
+  } catch {
+    // ignore parse errors
+  }
+
+  const message = detail
+    ? `GitHub API error: ${res.status} ${statusText} - ${detail}`
+    : `GitHub API error: ${res.status} ${statusText}`;
+  const error = new Error(message);
+  (error as any).status = res.status;
+  return error;
+}
+
 export async function getFile(path: string) {
   try {
     const res = await fetch(
@@ -30,8 +52,7 @@ export async function getFile(path: string) {
     );
     if (res.status === 404) return null;
     if (!res.ok) {
-      const statusText = res.statusText || 'Unknown error';
-      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+      throw await createGitHubError(res);
     }
     const data = await res.json();
     if (data.content && !Array.isArray(data)) {
@@ -66,8 +87,7 @@ sha?: string)
       body: JSON.stringify(body)
     });
     if (!res.ok) {
-      const statusText = res.statusText || 'Unknown error';
-      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+      throw await createGitHubError(res);
     }
     return res.json();
   } catch (error: any) {
@@ -83,8 +103,7 @@ export async function listFiles(path: string) {
     );
     if (res.status === 404) return [];
     if (!res.ok) {
-      const statusText = res.statusText || 'Unknown error';
-      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+      throw await createGitHubError(res);
     }
     const data = await res.json();
     if (Array.isArray(data)) return data;
@@ -103,8 +122,7 @@ export async function deleteFile(path: string, message: string, sha: string) {
       body: JSON.stringify({ message, sha, branch })
     });
     if (!res.ok) {
-      const statusText = res.statusText || 'Unknown error';
-      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+      throw await createGitHubError(res);
     }
   } catch (error: any) {
     handleApiError(error, 'deleteFile');
