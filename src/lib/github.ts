@@ -1,4 +1,5 @@
 import { config } from '../config/app';
+import { handleApiError } from './apiErrorHandler';
 
 const { owner, repo, branch } = config.github;
 const BASE = 'https://api.github.com';
@@ -40,11 +41,7 @@ export async function getFile(path: string) {
     return null;
   } catch (error: any) {
     if (error.message?.includes('404')) return null;
-    // Sanitize error message to prevent token leakage
-    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
-    const newError = new Error(sanitizedError);
-    newError.stack = error.stack;
-    throw newError;
+    handleApiError(error, 'getFile');
   }
 }
 
@@ -74,11 +71,7 @@ sha?: string)
     }
     return res.json();
   } catch (error: any) {
-    // Sanitize error message to prevent token leakage
-    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
-    const newError = new Error(sanitizedError);
-    newError.stack = error.stack;
-    throw newError;
+    handleApiError(error, 'putFile');
   }
 }
 
@@ -98,11 +91,7 @@ export async function listFiles(path: string) {
     return [];
   } catch (error: any) {
     if (error.message?.includes('404')) return [];
-    // Sanitize error message to prevent token leakage
-    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
-    const newError = new Error(sanitizedError);
-    newError.stack = error.stack;
-    throw newError;
+    handleApiError(error, 'listFiles');
   }
 }
 
@@ -118,10 +107,6 @@ export async function deleteFile(path: string, message: string, sha: string) {
       throw new Error(`GitHub API error: ${res.status} ${statusText}`);
     }
   } catch (error: any) {
-    // Sanitize error message to prevent token leakage
-    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
-    const newError = new Error(sanitizedError);
-    newError.stack = error.stack;
-    throw newError;
+    handleApiError(error, 'deleteFile');
   }
 }

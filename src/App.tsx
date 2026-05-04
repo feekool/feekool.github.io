@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './lib/theme';
 import { LanguageProvider } from './lib/i18n';
-import { AuthProvider, useAuth } from './lib/auth';
+import { RateLimitProvider } from './lib/rateLimit';
 import { Layout } from './components/Layout';
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
@@ -88,9 +88,11 @@ export function App() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
+            <RateLimitProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </RateLimitProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

@@ -46,6 +46,15 @@ This application implements several security measures to protect sensitive data:
 - ✅ **Token Isolation**: Main app never directly accesses the token after initial setup
 - ✅ **Automatic Cleanup**: Tokens cleared from storage on logout
 
+### Rate Limit Handling
+- ✅ **Automatic Detection**: Rate limit errors are automatically detected from GitHub API responses
+- ✅ **User-Friendly Modal**: Shows helpful modal with VPN/IP change instructions
+- ✅ **Multilingual Support**: Messages in English and Russian
+- ✅ **Non-Blocking**: Users can continue using the app after acknowledging the modal
+- ✅ **Secure Logging**: Rate limit events are logged without exposing sensitive data
+
+For detailed information about rate limit handling, see [RATE_LIMIT_HANDLING.md](./RATE_LIMIT_HANDLING.md)
+
 ### Environment Variables
 Create a `.env` file based on `.env.example`:
 
