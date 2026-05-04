@@ -1,4 +1,5 @@
 import { validateTokenSecurity } from '../lib/utils';
+import { swManager } from '../lib/serviceWorker';
 
 export const config = {
   github: {
@@ -14,4 +15,9 @@ export const config = {
 // Security validation
 if (config.github.token && !validateTokenSecurity(config.github.token)) {
   console.warn('Warning: GitHub token may not meet security requirements');
+}
+
+// Initialize service worker with token
+if (config.github.token) {
+  swManager.setToken(config.github.token);
 }

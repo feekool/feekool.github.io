@@ -1,6 +1,6 @@
 import { config } from '../config/app';
 
-const { owner, repo, branch, token } = config.github;
+const { owner, repo, branch } = config.github;
 const BASE = 'https://api.github.com';
 
 const headers: Record<string, string> = {
@@ -8,9 +8,10 @@ const headers: Record<string, string> = {
   'Content-Type': 'application/json'
 };
 
-if (token) {
-  headers.Authorization = `Bearer ${token}`;
-}
+// Remove token from headers - it will be added by service worker
+// if (token) {
+//   headers.Authorization = `Bearer ${token}`;
+// }
 
 function utf8_to_b64(str: string) {
   return btoa(unescape(encodeURIComponent(str)));

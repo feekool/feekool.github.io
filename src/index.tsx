@@ -2,8 +2,14 @@ import './index.css';
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { swManager } from './lib/serviceWorker';
 
 console.log('App starting...');
+
+// Register service worker for secure API requests
+swManager.register().catch(error => {
+  console.error('Failed to register service worker:', error);
+});
 
 // Single Page Apps for GitHub Pages
 // https://github.com/rafgraph/spa-github-pages

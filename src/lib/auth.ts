@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getFile, putFile } from './github';
 import { parseFrontmatter, stringifyFrontmatter, generateGravatarUrl } from './utils';
+import { swManager } from './serviceWorker';
 
 export interface User {
   username: string;
@@ -72,6 +73,8 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    // Clear token from service worker
+    swManager.clearToken();
   };
 
   return React.createElement(

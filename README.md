@@ -10,10 +10,18 @@ This application implements several security measures to protect sensitive data:
 
 ### API Token Security
 - ✅ GitHub Personal Access Tokens are stored in environment variables only
+- ✅ **Service Worker Protection**: Tokens are stored in IndexedDB and injected by service worker
+- ✅ **Network Tab Security**: Authorization headers are not visible in DevTools Network tab
 - ✅ Tokens are never logged in console output or error messages
 - ✅ All error messages are sanitized to prevent token leakage
 - ✅ Content Security Policy (CSP) headers prevent unauthorized script execution
 - ✅ Server-side security headers (XSS protection, frame options, etc.)
+
+### Service Worker Architecture
+- ✅ **Secure Token Storage**: GitHub tokens stored in IndexedDB within service worker
+- ✅ **Request Interception**: Service worker intercepts GitHub API calls and adds auth headers
+- ✅ **Token Isolation**: Main app never directly accesses the token after initial setup
+- ✅ **Automatic Cleanup**: Tokens cleared from storage on logout
 
 ### Environment Variables
 Create a `.env` file based on `.env.example`:
