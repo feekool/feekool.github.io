@@ -4,12 +4,67 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { swManager } from './lib/serviceWorker';
 
-console.log('App starting...');
+// Display bundle size information
+function logBundleSize() {
+  if ('performance' in window && 'getEntriesByType' in performance) {
+    // Wait a bit for all resources to load
+    setTimeout(() => {
+      const resources = performance.getEntriesByType('resource');
+      const scripts = resources.filter(r => r.name.includes('.js'));
+      const styles = resources.filter(r => r.name.includes('.css'));
+
+      let totalSize = 0;
+      scripts.forEach(script => {
+        if (script.transferSize) {
+          totalSize += script.transferSize;
+        }
+      });
+      styles.forEach(style => {
+        if (style.transferSize) {
+          totalSize += style.transferSize;
+        }
+      });
+
+      const formatSize = (bytes: number) => {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      };
+
+      console.log(`📦 Bundle Size: ${formatSize(totalSize)} (${scripts.length} JS files, ${styles.length} CSS files)`);
+    }, 1000);
+  }
+}
+
+// Display contact information
+function logContactInfo() {
+  const version = '0.0.1'; // From package.json
+  console.log(`
+🌟 GitHub Forum Platform v${version}
+   Template created by: Semyon Fedoseev
+   GitHub: https://github.com/fedoseevsm
+   Contact: Feel free to reach out for questions or contributions!
+
+💡 This platform is built with React, TypeScript, and Tailwind CSS
+   Features: GitHub API integration, Markdown support, Mobile responsive
+   Security: Service Worker token protection, CSP headers
+  `);
+}
+
+console.log('🚀 App starting...');
+
+// Log contact info immediately
+logContactInfo();
 
 // Register service worker for secure API requests
 swManager.register().catch(error => {
   console.error('Failed to register service worker:', error);
 });
+
+// Log bundle size after resources load
+logBundleSize();
 
 // Single Page Apps for GitHub Pages
 // https://github.com/rafgraph/spa-github-pages

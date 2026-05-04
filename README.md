@@ -4,6 +4,29 @@
 2. Run `npm install`
 3. Run `npm run dev`
 
+## Console Information
+
+When you run the application, you'll see helpful information in the browser console:
+
+### Bundle Size Information
+```
+📦 Bundle Size: 245.67 KB (12 JS files, 3 CSS files)
+```
+
+### Contact Information
+```
+🌟 GitHub Forum Platform v0.0.1
+   Template created by: Semyon Fedoseev
+   GitHub: https://github.com/fedoseevsm
+   Contact: Feel free to reach out for questions or contributions!
+
+💡 This platform is built with React, TypeScript, and Tailwind CSS
+   Features: GitHub API integration, Markdown support, Mobile responsive
+   Security: Service Worker token protection, CSP headers
+```
+
+For more details about bundle analysis and performance monitoring, see [BUNDLE_INFO.md](./BUNDLE_INFO.md)
+
 ## Security
 
 This application implements several security measures to protect sensitive data:
