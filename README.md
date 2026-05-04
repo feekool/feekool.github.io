@@ -1,3 +1,5 @@
+> 😎 The Best Open Source Starter Template 😎 GitHub Pages Simple Forum 🔫
+
 ## Getting Started
 
 1. Copy `.env.example` to `.env` and configure your environment variables
