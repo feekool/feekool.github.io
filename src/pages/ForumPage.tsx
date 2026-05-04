@@ -11,6 +11,7 @@ import { Forum, Topic, getForum, listTopics, createTopic } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
 import { MarkdownEditor } from '../components/MarkdownEditor';
+import { safeLogError } from '../lib/utils';
 export function ForumPage() {
   const { slug } = useParams<{
     slug: string;
@@ -58,7 +59,7 @@ export function ForumPage() {
       setForum(forumData);
       setTopics(topicsData);
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Error loading forum data:', err);
       setError(t('error'));
     } finally {
       setIsLoading(false);
@@ -86,7 +87,7 @@ export function ForumPage() {
       setNewTopicTitle('');
       setNewTopicBody('');
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Error creating topic:', err);
       alert(t('error'));
     } finally {
       setIsCreating(false);

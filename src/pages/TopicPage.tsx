@@ -7,7 +7,7 @@ import { useAuth } from '../lib/auth';
 import { getFile } from '../lib/github';
 import { MarkdownContent } from '../components/MarkdownContent';
 import { MarkdownEditor } from '../components/MarkdownEditor';
-import { normalizeText, generateGravatarUrl, parseFrontmatter } from '../lib/utils';
+import { normalizeText, generateGravatarUrl, parseFrontmatter, safeLogError } from '../lib/utils';
 export function TopicPage() {
   const { id } = useParams<{
     id: string;
@@ -80,7 +80,7 @@ export function TopicPage() {
       }
       setAuthorAvatars(avatars);
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Error loading topic data:', err);
       setError(t('error'));
     } finally {
       setIsLoading(false);
@@ -118,7 +118,7 @@ export function TopicPage() {
       
       setReplyBody('');
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Error creating post:', err);
       alert(t('error'));
     } finally {
       setIsReplying(false);

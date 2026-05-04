@@ -27,7 +27,10 @@ export async function getFile(path: string) {
       { headers }
     );
     if (res.status === 404) return null;
-    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+    if (!res.ok) {
+      const statusText = res.statusText || 'Unknown error';
+      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+    }
     const data = await res.json();
     if (data.content && !Array.isArray(data)) {
       const content = b64_to_utf8(data.content.replace(/\n/g, ''));
@@ -36,7 +39,11 @@ export async function getFile(path: string) {
     return null;
   } catch (error: any) {
     if (error.message?.includes('404')) return null;
-    throw error;
+    // Sanitize error message to prevent token leakage
+    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
+    const newError = new Error(sanitizedError);
+    newError.stack = error.stack;
+    throw newError;
   }
 }
 
@@ -54,16 +61,24 @@ sha?: string)
   };
   if (sha) body.sha = sha;
 
-  const res = await fetch(`${BASE}/repos/${owner}/${repo}/contents/${path}`, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`GitHub API error: ${res.status} ${err}`);
+  try {
+    const res = await fetch(`${BASE}/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const statusText = res.statusText || 'Unknown error';
+      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+    }
+    return res.json();
+  } catch (error: any) {
+    // Sanitize error message to prevent token leakage
+    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
+    const newError = new Error(sanitizedError);
+    newError.stack = error.stack;
+    throw newError;
   }
-  return res.json();
 }
 
 export async function listFiles(path: string) {
@@ -73,24 +88,39 @@ export async function listFiles(path: string) {
       { headers }
     );
     if (res.status === 404) return [];
-    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+    if (!res.ok) {
+      const statusText = res.statusText || 'Unknown error';
+      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+    }
     const data = await res.json();
     if (Array.isArray(data)) return data;
     return [];
   } catch (error: any) {
     if (error.message?.includes('404')) return [];
-    throw error;
+    // Sanitize error message to prevent token leakage
+    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
+    const newError = new Error(sanitizedError);
+    newError.stack = error.stack;
+    throw newError;
   }
 }
 
 export async function deleteFile(path: string, message: string, sha: string) {
-  const res = await fetch(`${BASE}/repos/${owner}/${repo}/contents/${path}`, {
-    method: 'DELETE',
-    headers,
-    body: JSON.stringify({ message, sha, branch })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`GitHub API error: ${res.status} ${err}`);
+  try {
+    const res = await fetch(`${BASE}/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'DELETE',
+      headers,
+      body: JSON.stringify({ message, sha, branch })
+    });
+    if (!res.ok) {
+      const statusText = res.statusText || 'Unknown error';
+      throw new Error(`GitHub API error: ${res.status} ${statusText}`);
+    }
+  } catch (error: any) {
+    // Sanitize error message to prevent token leakage
+    const sanitizedError = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
+    const newError = new Error(sanitizedError);
+    newError.stack = error.stack;
+    throw newError;
   }
 }

@@ -5,6 +5,7 @@ import { Forum, listForums, createForum } from '../lib/forum';
 import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth';
 import { MarkdownEditor } from '../components/MarkdownEditor';
+import { safeLogError } from '../lib/utils';
 export function HomePage() {
   const [forums, setForums] = useState<Forum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +23,7 @@ export function HomePage() {
       const data = await listForums();
       setForums(data);
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Error loading forums:', err);
       setError(t('error'));
     } finally {
       setIsLoading(false);
@@ -57,7 +58,7 @@ export function HomePage() {
       setNewForumTitle('');
       setNewForumDesc('');
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Error creating forum:', err);
       alert(t('error'));
     } finally {
       setIsCreating(false);

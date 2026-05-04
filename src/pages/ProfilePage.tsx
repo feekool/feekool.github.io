@@ -4,7 +4,7 @@ import { ArrowLeft, Camera, Save, User as UserIcon, Calendar, Globe } from 'luci
 import { useAuth } from '../lib/auth';
 import { useTranslation } from '../lib/i18n';
 import { putFile } from '../lib/github';
-import { stringifyFrontmatter, generateGravatarUrl } from '../lib/utils';
+import { stringifyFrontmatter, generateGravatarUrl, safeLogError } from '../lib/utils';
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
@@ -71,7 +71,7 @@ export function ProfilePage() {
 
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      safeLogError('Error uploading avatar:', error);
       alert('Failed to upload avatar. Please try again.');
     } finally {
       setIsUploading(false);
@@ -99,7 +99,7 @@ export function ProfilePage() {
       // Reload page to update display name in UI
       window.location.reload();
     } catch (error) {
-      console.error('Error saving profile:', error);
+      safeLogError('Error saving profile:', error);
       alert('Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
@@ -119,7 +119,7 @@ export function ProfilePage() {
       localStorage.setItem('user', JSON.stringify(updatedUser));
       window.location.reload();
     } catch (error) {
-      console.error('Error resetting avatar:', error);
+      safeLogError('Error resetting avatar:', error);
       alert('Failed to reset avatar. Please try again.');
     } finally {
       setIsResettingGravatar(false);

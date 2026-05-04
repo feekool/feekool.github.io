@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Loader2 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useTranslation } from '../lib/i18n';
+import { safeLogError } from '../lib/utils';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { LanguageToggle } from '../components/LanguageToggle';
 export function AuthPage() {
@@ -65,7 +66,7 @@ export function AuthPage() {
       await login(username.trim().toLowerCase());
       navigate('/');
     } catch (err: any) {
-      console.error(err);
+      safeLogError('Login error:', err);
       setError(err.message || t('error'));
     } finally {
       setIsSubmitting(false);

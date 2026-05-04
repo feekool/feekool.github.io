@@ -96,3 +96,66 @@ async function md5(str: string): Promise<string> {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// Safe error logging that prevents token leakage
+export function safeLogError(message: string, error?: any): void {
+  if (!error) {
+    console.error(message);
+    return;
+  }
+
+  // Sanitize error message and stack trace
+  const sanitizedMessage = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
+  const sanitizedStack = error.stack?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || '';
+
+  const sanitizedError = new Error(sanitizedMessage);
+  sanitizedError.stack = sanitizedStack;
+  sanitizedError.name = error.name || 'Error';
+
+  console.error(message, sanitizedError);
+}
+
+// Safe error logging for fetch responses
+export function safeLogFetchError(operation: string, error: any): void {
+  const sanitizedMessage = error.message?.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') || 'Unknown error';
+  console.error(`${operation} failed:`, sanitizedMessage);
+}
+
+// Security utility to validate token format (without exposing it)
+export function validateTokenSecurity(token?: string): boolean {
+  if (!token) return false;
+
+  // Basic validation: should be a reasonable length JWT-like token
+  if (token.length < 20) return false;
+
+  // Should not contain common insecure patterns
+  const insecurePatterns = [
+    /password/i,
+    /secret/i,
+    /key/i,
+    /token/i,
+    /bearer/i
+  ];
+
+  return !insecurePatterns.some(pattern => pattern.test(token));
+}
+
+// Sanitize any object that might contain sensitive data
+export function sanitizeForLogging(obj: any): any {
+  if (typeof obj !== 'object' || obj === null) {
+    return typeof obj === 'string' ? obj.replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]') : obj;
+  }
+
+  const sanitized = { ...obj };
+
+  // Recursively sanitize all string properties
+  for (const key in sanitized) {
+    if (typeof sanitized[key] === 'string') {
+      sanitized[key] = sanitized[key].replace(/Bearer\s+[^\s]+/gi, 'Bearer [REDACTED]');
+    } else if (typeof sanitized[key] === 'object') {
+      sanitized[key] = sanitizeForLogging(sanitized[key]);
+    }
+  }
+
+  return sanitized;
+}

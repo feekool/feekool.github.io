@@ -1,7 +1,40 @@
 ## Getting Started
 
-1. Run `npm install`
-2. Run `npm run dev`
+1. Copy `.env.example` to `.env` and configure your environment variables
+2. Run `npm install`
+3. Run `npm run dev`
+
+## Security
+
+This application implements several security measures to protect sensitive data:
+
+### API Token Security
+- ✅ GitHub Personal Access Tokens are stored in environment variables only
+- ✅ Tokens are never logged in console output or error messages
+- ✅ All error messages are sanitized to prevent token leakage
+- ✅ Content Security Policy (CSP) headers prevent unauthorized script execution
+- ✅ Server-side security headers (XSS protection, frame options, etc.)
+
+### Environment Variables
+Create a `.env` file based on `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+**Required environment variables:**
+- `VITE_API_KEY`: GitHub Personal Access Token with `repo` scope
+
+**Security best practices:**
+- Never commit `.env` files to version control
+- Rotate tokens regularly
+- Use minimum required permissions
+- Monitor token usage in GitHub settings
+
+### Error Handling
+- ✅ Sensitive data is automatically redacted from error logs
+- ✅ Safe logging functions prevent accidental token exposure
+- ✅ Network errors are sanitized before display to users
 
 ## Особенности
 
