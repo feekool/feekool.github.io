@@ -37,13 +37,7 @@ export function HomePage() {
     if (!user) return;
     setIsCreating(true);
     try {
-      const slug = newForumTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
-      
       const newForum = await createForum({
-        slug,
         title: newForumTitle,
         description: newForumDesc,
         order: String(forums.length),

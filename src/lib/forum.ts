@@ -1,5 +1,5 @@
 import { getFile, putFile, listFiles } from './github';
-import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate, normalizeText } from './utils';
+import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate, normalizeText, slugify } from './utils';
 
 export interface Forum {
   slug: string;
@@ -69,12 +69,13 @@ export async function getForum(slug: string): Promise<Forum | null> {
   return { ...data, slug };
 }
 
-export async function createForum(data: Omit<Forum, 'slug'> & {slug: string}): Promise<Forum> {
+export async function createForum(data: Omit<Forum, 'slug'>): Promise<Forum> {
+  const slug = slugify(data.title);
   const content = stringifyFrontmatter(data, '');
-  await putFile(`forums/${data.slug}.md`, content, `Create forum ${data.title}`);
+  await putFile(`forums/${slug}.md`, content, `Create forum ${data.title}`);
   
   return {
-    slug: data.slug,
+    slug,
     title: data.title,
     description: data.description,
     order: data.order,
@@ -120,7 +121,7 @@ export async function getTopic(id: string): Promise<Topic | null> {
 
 export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleTranslit'>): Promise<Topic> {
   const id = generateId();
-  const titleTranslit = transliterate(data.title);
+  const titleTranslit = transliterate(data.title) || `topic-${generateId()}`;
   const createdAt = new Date().toISOString();
   const frontmatterData = {
     title: data.title,

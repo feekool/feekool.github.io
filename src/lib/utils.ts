@@ -61,6 +61,11 @@ export function transliterate(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+export function slugify(text: string, fallback: string = generateId()): string {
+  const slug = transliterate(text);
+  return slug || fallback;
+}
+
 export function normalizeText(text: string): string {
   const russianToLatin: Record<string, string> = {
     'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 
