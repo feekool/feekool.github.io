@@ -3,9 +3,9 @@ import { swManager } from '../lib/serviceWorker';
 
 export const config = {
   github: {
-    owner: 'jetswap',
-    repo: 'feekool',
-    branch: 'main',
+    owner: 'feekool',
+    repo: 'feekool.github.io',
+    branch: 'master',
     token: import.meta.env.VITE_API_KEY || ''
   },
   defaultLang: 'en',

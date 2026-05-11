@@ -51,18 +51,12 @@ async function handleGitHubRequest(request) {
     }
 
     // Create new request with authorization header
-    const authRequest = new Request(request.url, {
-      method: request.method,
-      headers: {
-        ...Object.fromEntries(request.headers.entries()),
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github+json',
-        'User-Agent': 'Feekool-App/1.0',
-        'Content-Type': request.headers.get('Content-Type') || 'application/json'
-      },
-      body: request.body,
-      mode: 'cors',
-      credentials: 'omit'
+    const authHeaders = new Headers(request.headers);
+    authHeaders.set('Authorization', `Bearer ${token}`);
+    authHeaders.set('Accept', 'application/vnd.github+json');
+
+    const authRequest = new Request(request, {
+      headers: authHeaders
     });
 
     // Make the request
