@@ -6,7 +6,7 @@ This implementation uses a Service Worker to securely handle GitHub API authenti
 ## Architecture
 
 ### 1. Token Storage
-- GitHub Personal Access Token is stored in IndexedDB within the Service Worker context
+- GitHub access tokens (Personal Access or fine-grained tokens) are stored in IndexedDB within the Service Worker context
 - Token is never accessible from the main application thread after initial setup
 - Token is encrypted at rest using browser's IndexedDB security
 

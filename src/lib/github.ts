@@ -36,6 +36,19 @@ async function createGitHubError(res: Response): Promise<Error> {
     // ignore parse errors
   }
 
+  if (res.status === 403 && detail) {
+    const normalized = detail.toLowerCase();
+    if (/rate limit|secondary rate limit|exceeded|too many requests/.test(normalized)) {
+      // Keep GitHub rate limit message as-is for user clarity
+    } else if (/resource not accessible|permission|access denied|forbidden|repository access/.test(normalized)) {
+      detail = 'The provided GitHub token does not have permission to access this repository. Use a GitHub fine-grained token with repository access or a PAT with repo/content permissions.';
+    }
+  }
+
+  if (res.status === 401 && !detail) {
+    detail = 'Invalid or missing GitHub token. Check your VITE_API_KEY and token permissions.';
+  }
+
   const message = detail
     ? `GitHub API error: ${res.status} ${statusText} - ${detail}`
     : `GitHub API error: ${res.status} ${statusText}`;

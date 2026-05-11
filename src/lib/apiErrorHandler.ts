@@ -35,13 +35,15 @@ function isRateLimitError(error: any): boolean {
     'rate limit',
     'api rate limit',
     'too many requests',
-    '403 forbidden', // GitHub returns 403 for rate limits
     'secondary rate limit',
     'exceeded',
     'limit exceeded'
   ];
 
-  return rateLimitPatterns.some(pattern => message.includes(pattern));
+  return (
+    error.status === 429 ||
+    rateLimitPatterns.some(pattern => message.includes(pattern))
+  );
 }
 
 // Export for use in components

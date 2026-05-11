@@ -36,7 +36,7 @@ For more details about bundle analysis and performance monitoring, see [BUNDLE_I
 This application implements several security measures to protect sensitive data:
 
 ### API Token Security
-- ✅ GitHub Personal Access Tokens are stored in environment variables only
+- ✅ GitHub access tokens (Personal Access or fine-grained tokens) are stored in environment variables only
 - ✅ **Service Worker Protection**: Tokens are stored in IndexedDB and injected by service worker
 - ✅ **Network Tab Security**: Authorization headers are not visible in DevTools Network tab
 - ✅ Tokens are never logged in console output or error messages
@@ -67,7 +67,7 @@ cp .env.example .env
 ```
 
 **Required environment variables:**
-- `VITE_API_KEY`: GitHub Personal Access Token with `repo` scope
+- `VITE_API_KEY`: GitHub Personal Access Token or fine-grained token with repository access (`repo` or `contents` permissions)
 
 **Security best practices:**
 - Never commit `.env` files to version control
