@@ -112,7 +112,7 @@ export function App() {
           <AuthProvider>
             <AdminSettingsProvider>
               <RateLimitProvider>
-                <BrowserRouter>
+                <BrowserRouter basename={basename}>
                   <AppRoutes />
                 </BrowserRouter>
               </RateLimitProvider>
