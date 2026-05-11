@@ -57,9 +57,10 @@ async function handleGitHubRequest(request) {
         ...Object.fromEntries(request.headers.entries()),
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github+json',
+        'User-Agent': 'Feekool-App/1.0',
         'Content-Type': request.headers.get('Content-Type') || 'application/json'
       },
-      body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.clone().text(),
+      body: request.body,
       mode: 'cors',
       credentials: 'omit'
     });

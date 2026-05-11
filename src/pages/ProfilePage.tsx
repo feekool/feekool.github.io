@@ -144,6 +144,17 @@ export function ProfilePage() {
         <h1 className="text-2xl font-bold">{t('profile')}</h1>
       </div>
 
+      {user.username === 'admin' && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => navigate('/admin')}
+            className="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-colors"
+          >
+            Админская панель
+          </button>
+        </div>
+      )}
+
       {/* Profile Card */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Avatar Section */}

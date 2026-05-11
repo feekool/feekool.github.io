@@ -10,6 +10,7 @@ import { HomePage } from './pages/HomePage';
 import { ForumPage } from './pages/ForumPage';
 import { TopicPage } from './pages/TopicPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AdminPage } from './pages/AdminPage';
 
 // Error Boundary component
 class ErrorBoundary extends React.Component<
@@ -68,6 +69,24 @@ function ProtectedRoute({ children }: {children: React.ReactNode;}) {
   }
   return <>{children}</>;
 }
+
+function AdminRoute({ children }: {children: React.ReactNode;}) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        Loading...
+      </div>);
+  }
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  if (user.username !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -77,6 +96,7 @@ function AppRoutes() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forum/:slug" element={<ForumPage />} />
         <Route path="/topic/:id" element={<TopicPage />} />
+        <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       </Route>
     </Routes>);
 
