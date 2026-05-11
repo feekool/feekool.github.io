@@ -3,6 +3,7 @@
 
 class ServiceWorkerManager {
   private registration: ServiceWorkerRegistration | null = null;
+  private pendingToken: string | null = null;
 
   async register(): Promise<void> {
     if (!('serviceWorker' in navigator)) {
@@ -20,6 +21,15 @@ class ServiceWorkerManager {
       // Wait for the service worker to be ready
       await navigator.serviceWorker.ready;
 
+      // Re-read registration because it may have changed during activation
+      this.registration = await navigator.serviceWorker.getRegistration('/') || this.registration;
+
+      // Send any queued token once the worker is active
+      if (this.pendingToken && this.registration?.active) {
+        this.sendTokenToWorker(this.pendingToken);
+        this.pendingToken = null;
+      }
+
       // Set up message handling
       navigator.serviceWorker.addEventListener('message', this.handleMessage.bind(this));
 
@@ -29,16 +39,25 @@ class ServiceWorkerManager {
   }
 
   async setToken(token: string): Promise<void> {
+    if (this.registration?.active) {
+      this.sendTokenToWorker(token);
+      return;
+    }
+
+    this.pendingToken = token;
+    console.log('Service worker not active yet; token queued for delivery after registration');
+  }
+
+  private sendTokenToWorker(token: string): void {
     if (!this.registration?.active) {
       console.warn('Service worker not active, cannot send token');
       return;
     }
 
     try {
-      // Send token to service worker for storage in IndexedDB
       this.registration.active.postMessage({
         type: 'SET_TOKEN',
-        token: token
+        token
       });
 
       console.log('Token sent to service worker for secure storage');
