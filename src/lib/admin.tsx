@@ -30,7 +30,8 @@ export async function loadAdminSettings(): Promise<AdminSettings> {
 
 export async function saveAdminSettings(settings: AdminSettings): Promise<void> {
   const content = stringifyFrontmatter(settings, '');
-  await putFile(adminSettingsFile, content, 'Update admin settings');
+  const existingFile = await getFile(adminSettingsFile);
+  await putFile(adminSettingsFile, content, 'Update admin settings', false, existingFile?.sha);
 }
 
 interface AdminSettingsContextType {
