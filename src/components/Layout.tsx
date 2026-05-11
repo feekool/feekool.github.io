@@ -4,9 +4,11 @@ import { MessageSquare, LogOut, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
 import { useAuth } from '../lib/auth';
+import { useAdminSettings } from '../lib/admin';
 import { useTranslation } from '../lib/i18n';
 export function Layout() {
   const { user, logout } = useAuth();
+  const { settings } = useAdminSettings();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -67,6 +69,18 @@ export function Layout() {
           </div>
         </div>
       </header>
+
+      {settings.adminNotice ? (
+        <div className="max-w-5xl mx-auto px-4 py-4 bg-blue-50 dark:bg-blue-900/60 border-b border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100">
+          {settings.adminNotice}
+        </div>
+      ) : null}
+
+      {settings.maintenanceMode && user?.username !== 'admin' ? (
+        <div className="max-w-5xl mx-auto px-4 py-4 bg-yellow-100 dark:bg-yellow-900/40 border-b border-yellow-300 dark:border-yellow-800 text-yellow-900 dark:text-yellow-100">
+          {t('maintenanceBanner')}
+        </div>
+      ) : null}
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         <Outlet />

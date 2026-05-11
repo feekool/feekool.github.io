@@ -1,36 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Save, ShieldCheck, Settings } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
-
-interface AdminSettings {
-  maintenanceMode: boolean;
-  allowSignups: boolean;
-  adminNotice: string;
-}
-
-const defaultSettings: AdminSettings = {
-  maintenanceMode: false,
-  allowSignups: true,
-  adminNotice: 'Добро пожаловать в админ-панель.',
-};
+import { useAdminSettings } from '../lib/admin';
 
 export function AdminPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [settings, setSettings] = useState<AdminSettings>(defaultSettings);
+  const { settings, setSettings, saveSettings, isLoading } = useAdminSettings();
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('admin-settings');
-    if (stored) {
-      try {
-        setSettings(JSON.parse(stored));
-      } catch (error) {
-        console.warn('Invalid admin settings in localStorage:', error);
-      }
-    }
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-gray-600 dark:text-gray-300">Загрузка настроек администратора...</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -40,10 +26,15 @@ export function AdminPage() {
     return <Navigate to="/" replace />;
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    localStorage.setItem('admin-settings', JSON.stringify(settings));
-    window.setTimeout(() => setIsSaving(false), 300);
+    try {
+      await saveSettings(settings);
+    } catch (error) {
+      console.error('Failed to save admin settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -100,6 +91,21 @@ export function AdminPage() {
                 checked={settings.allowSignups}
                 onChange={(event) =>
                   setSettings({ ...settings, allowSignups: event.target.checked })
+                }
+                className="h-5 w-5 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+              />
+            </label>
+
+            <label className="flex items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div>
+                <p className="font-medium">Показывать количество дней от первого поста</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Отображать на постах темы количество дней с момента создания темы.</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.showDaysSinceFirstPost}
+                onChange={(event) =>
+                  setSettings({ ...settings, showDaysSinceFirstPost: event.target.checked })
                 }
                 className="h-5 w-5 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
               />

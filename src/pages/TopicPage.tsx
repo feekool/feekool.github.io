@@ -7,7 +7,8 @@ import { useAuth } from '../lib/auth';
 import { getFile } from '../lib/github';
 import { MarkdownContent } from '../components/MarkdownContent';
 import { MarkdownEditor } from '../components/MarkdownEditor';
-import { normalizeText, generateGravatarUrl, parseFrontmatter, safeLogError } from '../lib/utils';
+import { useAdminSettings } from '../lib/admin';
+import { calculateDaysBetween, formatDaysCount, normalizeText, generateGravatarUrl, parseFrontmatter, safeLogError } from '../lib/utils';
 export function TopicPage() {
   const { id } = useParams<{
     id: string;
@@ -27,6 +28,7 @@ export function TopicPage() {
   const textTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { settings } = useAdminSettings();
 
   useEffect(() => {
     if (authorTimeoutRef.current) clearTimeout(authorTimeoutRef.current);
@@ -128,11 +130,14 @@ export function TopicPage() {
     const quote = `> ${author} ${t('said')}:\n> ${body.replace(/\n/g, '\n> ')}\n\n`;
     setReplyBody(prev => prev + quote);
   };
-  const renderMessage = (message: any, isOriginal: boolean) => (
-    <div
-      key={message.id}
-      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-      
+  const renderMessage = (message: any, isOriginal: boolean) => {
+    const daysSinceFirstPost = calculateDaysBetween(topic?.createdAt || message.createdAt, message.createdAt);
+    const showDaysLabel = settings.showDaysSinceFirstPost && !isOriginal;
+
+    return (
+      <div
+        key={message.id}
+        className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="flex flex-col sm:flex-row">
           <div className="bg-gray-50 dark:bg-gray-800/50 p-4 sm:w-48 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 flex flex-col items-center sm:items-start">
             <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden mb-2">
@@ -153,6 +158,11 @@ export function TopicPage() {
               <Clock className="w-3 h-3" />
               {new Date(message.createdAt).toLocaleDateString()}
             </span>
+            {showDaysLabel && (
+              <span className="text-xs text-gray-600 dark:text-gray-300 mt-2 bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded-full">
+                {formatDaysCount(daysSinceFirstPost)}
+              </span>
+            )}
           </div>
           <div className="p-6 flex-1">
             <MarkdownContent content={message.body} />
@@ -168,7 +178,8 @@ export function TopicPage() {
           </div>
         </div>
       </div>
-  );
+    );
+  };
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">

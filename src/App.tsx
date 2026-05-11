@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './lib/theme';
 import { LanguageProvider } from './lib/i18n';
 import { AuthProvider, useAuth } from './lib/auth';
+import { AdminSettingsProvider } from './lib/admin';
 import { RateLimitProvider } from './lib/rateLimit';
 import { Layout } from './components/Layout';
 import { AuthPage } from './pages/AuthPage';
@@ -109,11 +110,13 @@ export function App() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <RateLimitProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </RateLimitProvider>
+            <AdminSettingsProvider>
+              <RateLimitProvider>
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </RateLimitProvider>
+            </AdminSettingsProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

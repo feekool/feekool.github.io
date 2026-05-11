@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Loader2 } from 'lucide-react';
+import { getFile } from '../lib/github';
 import { useAuth } from '../lib/auth';
+import { useAdminSettings } from '../lib/admin';
 import { useTranslation } from '../lib/i18n';
 import { safeLogError } from '../lib/utils';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -13,6 +15,7 @@ export function AuthPage() {
   const [isUsernameValid, setIsUsernameValid] = useState(true);
   const [usernameError, setUsernameError] = useState('');
   const { login, user } = useAuth();
+  const { settings } = useAdminSettings();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -60,10 +63,25 @@ export function AuthPage() {
     if (!validateUsername(username)) {
       return;
     }
+
+    const normalizedUsername = username.trim().toLowerCase();
+    if (settings.maintenanceMode && normalizedUsername !== 'admin') {
+      setError(t('maintenanceMessage'));
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     try {
-      await login(username.trim().toLowerCase());
+      const path = `users/${normalizedUsername}.md`;
+      const userFile = await getFile(path);
+
+      if (!settings.allowSignups && !userFile && normalizedUsername !== 'admin') {
+        setError(t('signupsDisabled'));
+        return;
+      }
+
+      await login(normalizedUsername);
       navigate('/');
     } catch (err: any) {
       safeLogError('Login error:', err);

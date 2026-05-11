@@ -49,7 +49,11 @@ const translations = {
     welcomeTitle: 'Welcome to the Forum Template',
     welcomeMessage: 'This is a modern forum application built with React, TypeScript, and Tailwind CSS. You can use this as a template to create your own forum.',
     featuresTitle: 'Features',
-    featuresList: 'User authentication, Markdown support, Dark mode, Mobile responsive, Multi-language support'
+    featuresList: 'User authentication, Markdown support, Dark mode, Mobile responsive, Multi-language support',
+    maintenanceMessage: 'The site is currently under maintenance. Please try again later.',
+    signupsDisabled: 'Registration is temporarily disabled. Please sign in to an existing account.',
+    adminSettingsLoading: 'Loading admin settings...',
+    maintenanceBanner: 'Site is in maintenance mode. Some features may be limited.'
   },
   ru: {
     login: 'Войти',
@@ -98,7 +102,11 @@ const translations = {
     welcomeTitle: 'Добро пожаловать в шаблон форума',
     welcomeMessage: 'Это современное форумное приложение, созданное с помощью React, TypeScript и Tailwind CSS. Вы можете использовать это как шаблон для создания своего собственного форума.',
     featuresTitle: 'Возможности',
-    featuresList: 'Аутентификация пользователей, Поддержка Markdown, Темная тема, Адаптивность для мобильных, Поддержка нескольких языков'
+    featuresList: 'Аутентификация пользователей, Поддержка Markdown, Темная тема, Адаптивность для мобильных, Поддержка нескольких языков',
+    maintenanceMessage: 'Сайт находится в режиме обслуживания. Повторите попытку позже.',
+    signupsDisabled: 'Регистрация временно отключена. Пожалуйста, войдите в существующий аккаунт.',
+    adminSettingsLoading: 'Загрузка настроек администратора...',
+    maintenanceBanner: 'Сайт находится в режиме обслуживания. Некоторые функции могут быть ограничены.'
   }
 };
 

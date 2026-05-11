@@ -87,6 +87,30 @@ export function normalizeText(text: string): string {
     .trim();
 }
 
+export function calculateDaysBetween(startIso: string, endIso: string): number {
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  const diffMs = end.getTime() - start.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+}
+
+export function formatDaysCount(days: number): string {
+  const absDays = Math.abs(days);
+  const lastTwoDigits = absDays % 100;
+  const lastDigit = absDays % 10;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return `${days} дней`;
+  }
+  if (lastDigit === 1) {
+    return `${days} день`;
+  }
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return `${days} дня`;
+  }
+  return `${days} дней`;
+}
+
 // Simple MD5 implementation for Gravatar
 export async function generateGravatarUrl(username: string, size: number = 200): Promise<string> {
   const email = `${username.toLowerCase()}@gravatar.local`;
