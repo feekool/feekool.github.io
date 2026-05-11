@@ -5,7 +5,7 @@ export const config = {
   github: {
     owner: 'feekool',
     repo: 'feekool.github.io',
-    branch: 'master',
+    branch: 'main',
     token: import.meta.env.VITE_API_KEY || ''
   },
   defaultLang: 'en',
