@@ -94,3 +94,11 @@ class ServiceWorkerManager {
       console.log('Service Worker unregistered');
     }
   }
+
+  get isRegistered(): boolean {
+    return this.registration !== null;
+  }
+}
+
+// Export singleton instance
+export const swManager = new ServiceWorkerManager();
