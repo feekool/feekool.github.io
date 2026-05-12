@@ -218,3 +218,11 @@ self.addEventListener('message', (event) => {
         });
       });
     });
+  } else if (event.data && event.data.type === 'CLEAR_TOKEN') {
+    openTokenDB().then(db => {
+      const transaction = db.transaction([TOKEN_STORE], 'readwrite');
+      const store = transaction.objectStore(TOKEN_STORE);
+      store.delete('github-token');
+    });
+  }
+});
