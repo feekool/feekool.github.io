@@ -125,15 +125,30 @@ sha?: string)
   };
   if (sha) body.sha = sha;
 
-  try {
+  const sendRequest = async (requestBody: any) => {
     const res = await fetch(`${BASE}/repos/${owner}/${repo}/contents/${path}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(body)
+      body: JSON.stringify(requestBody)
     });
+    return res;
+  };
+
+  try {
+    let res = await sendRequest(body);
+
+    if (!res.ok && res.status === 422 && !sha) {
+      const existing = await getFile(path);
+      if (existing?.sha) {
+        body.sha = existing.sha;
+        res = await sendRequest(body);
+      }
+    }
+
     if (!res.ok) {
       throw await createGitHubError(res);
     }
+
     const data = await res.json();
     fileCache.set(path, { content, sha: data.content?.sha });
     return data;
