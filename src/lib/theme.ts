@@ -20,15 +20,27 @@ export function ThemeProvider({ children, username }: { children: React.ReactNod
   });
 
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT_COLOR);
+  const [isLoadingColor, setIsLoadingColor] = useState(!!username);
 
-  // Load user's accent color on mount
+  // Load user's accent color on mount or when username changes
   useEffect(() => {
     if (username) {
-      getUserAccentColor(username).then(color => {
-        setAccentColorState(color);
-      }).catch(() => {
-        // Keep default color on error
-      });
+      setIsLoadingColor(true);
+      getUserAccentColor(username)
+        .then(color => {
+          setAccentColorState(color);
+          applyAccentColor(color);
+        })
+        .catch(() => {
+          // Keep default color on error
+          applyAccentColor(DEFAULT_ACCENT_COLOR);
+        })
+        .finally(() => {
+          setIsLoadingColor(false);
+        });
+    } else {
+      setIsLoadingColor(false);
+      applyAccentColor(DEFAULT_ACCENT_COLOR);
     }
   }, [username]);
 

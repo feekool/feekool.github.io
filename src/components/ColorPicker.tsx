@@ -17,6 +17,28 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [customColor, setCustomColor] = useState(accentColor);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load user's actual accent color on mount
+  useEffect(() => {
+    const loadUserColor = async () => {
+      try {
+        const userColor = await getUserAccentColor(username);
+        setAccentColor(userColor);
+        setCustomColor(userColor);
+      } catch (error) {
+        // Keep default color on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadUserColor();
+  }, [username, setAccentColor]);
+
+  // Keep customColor in sync with accentColor
+  useEffect(() => {
+    setCustomColor(accentColor);
+  }, [accentColor]);
 
   const handleColorSelect = async (color: string) => {
     // Apply color immediately for instant feedback
@@ -66,12 +88,12 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
             <button
               key={color}
               onClick={() => handleColorSelect(color)}
-              disabled={isSaving}
+              disabled={isSaving || isLoading}
               className={`relative w-12 h-12 rounded-lg border-2 transition-all hover:scale-110 ${
                 accentColor === color
                   ? 'border-gray-900 dark:border-gray-100 shadow-lg'
                   : 'border-gray-300 dark:border-gray-600'
-              }`}
+              } ${isLoading || isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
               style={{ backgroundColor: color }}
               title={color}
             >
@@ -92,18 +114,20 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
               type="color"
               value={customColor}
               onChange={(e) => handleCustomColorChange(e.target.value)}
-              className="w-12 h-10 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+              disabled={isSaving || isLoading}
+              className="w-12 h-10 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 disabled:opacity-50"
             />
             <input
               type="text"
               value={customColor}
               onChange={(e) => handleCustomColorChange(e.target.value)}
               placeholder="rgb(59, 130, 246)"
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              disabled={isSaving || isLoading}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
             />
             <button
               onClick={handleCustomColorApply}
-              disabled={isSaving || customColor === accentColor}
+              disabled={isSaving || isLoading || customColor === accentColor}
               className="px-4 py-2 btn-accent hover:opacity-90 disabled:opacity-50 text-white rounded-md transition-colors"
             >
               {isSaving ? t('savingColor') : t('apply')}

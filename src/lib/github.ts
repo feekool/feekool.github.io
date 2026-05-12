@@ -126,9 +126,11 @@ sha?: string)
   if (sha) body.sha = sha;
 
   const sendRequest = async (requestBody: any) => {
+    // Create fresh headers for each request to allow Service Worker to add authorization
+    const requestHeaders = new Headers(headers);
     const res = await fetch(`${BASE}/repos/${owner}/${repo}/contents/${path}`, {
       method: 'PUT',
-      headers,
+      headers: requestHeaders,
       body: JSON.stringify(requestBody)
     });
     return res;
