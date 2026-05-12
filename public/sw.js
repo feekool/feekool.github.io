@@ -48,7 +48,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Handle GitHub API requests for all methods
+  // Handle all GitHub API requests
   if (url.origin === GITHUB_API_BASE) {
     event.respondWith(handleGitHubRequest(event.request));
   }
@@ -62,58 +62,54 @@ self.addEventListener('fetch', (event) => {
 async function handleGitHubRequest(request) {
   try {
     const token = await getStoredToken();
-    if (!token) {
-      console.warn('No token available');
-      if (request.method === 'GET') {
-        return tryOfflineFallback(request);
-      }
-      return fetch(request);
-    }
 
-    const authHeaders = new Headers(request.headers);
-    authHeaders.set('Authorization', `Bearer ${token}`);
-    authHeaders.set('Accept', 'application/vnd.github+json');
-
-    const authRequest = new Request(request, {
-      method: request.method,
-      headers: authHeaders,
-      body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
-      mode: request.mode,
-      credentials: request.credentials,
-      cache: request.cache,
-      redirect: request.redirect,
-      referrer: request.referrer,
-      integrity: request.integrity
-    });
-
+    // For GET requests, check cache first
     if (request.method === 'GET') {
       const cache = await caches.open(GITHUB_API_CACHE);
       const cacheKey = new Request(request.url, {
-        method: request.method,
+        method: 'GET',
         headers: new Headers({ Accept: 'application/vnd.github+json' })
       });
+
       const cachedResponse = await cache.match(cacheKey);
       if (cachedResponse) {
         return cachedResponse.clone();
       }
-
-      const response = await fetch(authRequest);
-      if (response.ok) {
-        const responseClone = response.clone();
-        await cache.put(cacheKey, responseClone);
-      }
-      return response;
     }
 
-    return await fetch(authRequest);
+    // Create request with authorization token
+    const authHeaders = new Headers(request.headers);
+    authHeaders.set('Accept', 'application/vnd.github+json');
+    
+    if (token) {
+      authHeaders.set('Authorization', `Bearer ${token}`);
+    }
+
+    const authRequest = new Request(request, { headers: authHeaders });
+    const response = await fetch(authRequest);
+
+    // Cache successful GET responses
+    if (request.method === 'GET' && response.ok) {
+      const cache = await caches.open(GITHUB_API_CACHE);
+      cache.put(request.url, response.clone()).catch(err => {
+        console.warn('Failed to cache response:', err);
+      });
+    }
+
+    return response;
+
   } catch (error) {
     console.error('GitHub API fetch error:', error.message);
+
+    // For GET requests, try offline fallback
     if (request.method === 'GET') {
       return tryOfflineFallback(request);
     }
+
+    // For other methods (PUT, DELETE, etc), return offline error
     return new Response(JSON.stringify({
       error: 'Offline',
-      message: 'Unable to complete GitHub request while offline'
+      message: 'No connection - offline mode'
     }), {
       status: 503,
       statusText: 'Service Unavailable',
@@ -124,22 +120,40 @@ async function handleGitHubRequest(request) {
 
 // Handle static requests - network-first, fallback to cache
 async function handleStaticRequest(request) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, response.clone()).catch(err => {
-        console.warn('Failed to cache response:', err);
-      });
-      return response;
-    }
-    throw new Error('Network response not ok');
-  } catch (error) {
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
-    }
+      rnO
 
+es.open(GITHUB_API_CACHE);
+      headcec:nadea(cii c}cpGITHUB_PI_CACHE
+    const ccchdKsynse = await cache.matc.urlh(cacheKey);
+    if (cachedResponse) {
+      return canew Respons({ Accp:applicaion/vndgiub+jsn})
+ });
+
+//Checkcachfi fr offlin support
+     otqh aachthRosporie = await nst asmat h(c= neKey); Headers(request.headers);
+    ifa(cachhHRdAponso) {n', `Bearer ${token}`);
+    authcuecachdRponseclo();
+    cst authRequest = new Request(request, { headers: authHeaders });
+    const response = await fetch(authRequest);
+//Cate re wiauhcorizlt 
+  if (respnuteH.adkrs {Hadrheades);
+  coaut Heaeeolns t('Au= orizatirn'sw`Bitrcae${toke.}`);
+   tauth(caches.Kete' respo',seClone);
+
+utRqutneRequsrqust,e{rspaos:utHar }    console.error('GitHub API fetch error:', error.message);
+  return tryOfflineFallback(request);
+
+    // Cache successful responses
+}
+
+
+ Hand
+le static requests - network-first, fallback to cache
+ync function handleS    const response = await fetch(request);
+
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, response.clone()).catch(err => {he response:', err);
+    });r
     const navigationFallback = request.mode === 'navigate' || (request.headers.get('accept')?.includes('text/html'));
     if (navigationFallback) {
       const shell = await caches.match('/index.html');
