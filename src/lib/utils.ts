@@ -188,3 +188,27 @@ export function sanitizeForLogging(obj: any): any {
 
   return sanitized;
 }
+
+// Check if error is offline/network error
+export function isOfflineError(error: any): boolean {
+  if (!error) return false;
+  
+  const message = error.message?.toLowerCase() || '';
+  const status = error.status || error.statusCode;
+  
+  return (
+    status === 503 ||
+    message.includes('offline') ||
+    message.includes('network') ||
+    message.includes('failed to fetch') ||
+    error.name === 'NetworkError'
+  );
+}
+
+// Get user-friendly offline error message
+export function getOfflineErrorMessage(operation: string = 'Loading'): string {
+  if (navigator.onLine) {
+    return `${operation} failed - check your connection`;
+  }
+  return `${operation} - you are offline. Viewing cached data if available.`;
+}

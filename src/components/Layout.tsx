@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { MessageSquare, LogOut, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
+import { OfflineIndicator } from './OfflineIndicator';
 import { useAuth } from '../lib/auth';
 import { useAdminSettings } from '../lib/admin';
 import { useTranslation } from '../lib/i18n';
@@ -85,6 +86,8 @@ export function Layout() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <Outlet />
       </main>
+
+      <OfflineIndicator />
     </div>);
 
 }
