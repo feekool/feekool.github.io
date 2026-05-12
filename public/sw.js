@@ -1,12 +1,14 @@
 // Service Worker for offline-first support
 // Caches static assets and GitHub API responses for offline access
+// Supports PUT/POST/PATCH operations with offline queue
 // Token is stored securely in IndexedDB
 
 const GITHUB_API_BASE = 'https://api.github.com';
-const GITHUB_API_CACHE = 'github-api-cache-v2';
-const STATIC_CACHE = 'static-cache-v2';
-const EXTERNAL_CACHE = 'external-cache-v1';
+const GITHUB_API_CACHE = 'github-api-cache-v3';
+const STATIC_CACHE = 'static-cache-v3';
+const EXTERNAL_CACHE = 'external-cache-v2';
 const TOKEN_STORE = 'github-token-store';
+const OFFLINE_QUEUE_STORE = 'offline-queue-store';
 
 // Install event - cache essential static assets
 self.addEventListener('install', (event) => {
@@ -44,71 +46,113 @@ self.addEventListener('activate', (event) => {
 // Fetch event - route requests appropriately
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  const { method } = event.request;
 
-  // Don't intercept non-GET requests to our own origin (they should go directly)
-  if (url.origin === location.origin && event.request.method !== 'GET') {
-    return;
-  }
-
-  // Handle all GitHub API requests
+  // Handle GitHub API requests
   if (url.origin === GITHUB_API_BASE) {
-    event.respondWith(handleGitHubRequest(event.request));
+    // For non-GET requests (POST, PUT, PATCH, DELETE)
+    if (method !== 'GET') {
+      event.respondWith(handleGitHubWriteRequest(event.request));
+      return;
+    }
+    // For GET requests
+    event.respondWith(handleGitHubReadRequest(event.request));
     return;
   }
 
-  // Allow external resources to pass through without caching scripts
-  if (event.request.method === 'GET') {
+  // Don't intercept non-GET requests to our own origin
+  if (url.origin === location.origin && method !== 'GET') {
+    return;
+  }
+
+  // Handle external resources
+  if (method === 'GET') {
     // For gravatar images - cache them
     if ((url.hostname.includes('gravatar.com') || url.hostname.includes('www.gravatar.com')) && 
         event.request.destination === 'image') {
-      event.respondWith(
-        caches.open(EXTERNAL_CACHE).then(cache => {
-          return cache.match(event.request).then(cached => {
-            return fetch(event.request)
-              .then(response => {
-                if (response && response.status === 200) {
-                  cache.put(event.request, response.clone());
-                }
-                return response;
-              })
-              .catch(() => cached || new Response('', { status: 204 }));
-          });
-        })
-      );
+      event.respondWith(handleGravatarRequest(event.request));
       return;
     }
 
     // For umnico and other external resources - network only
     if (url.hostname.includes('umnico.com') || url.hostname.includes('www.umnico.com')) {
-      event.respondWith(
-        fetch(event.request).catch(() => new Response('', { status: 204 }))
-      );
+      event.respondWith(fetch(event.request).catch(() => new Response('', { status: 204 })));
       return;
     }
 
-    // Handle static assets with network-first strategy
+    // Handle static assets
     event.respondWith(handleStaticRequest(event.request));
   }
 });
 
-// Handle GitHub API requests - network first, cache fallback
-async function handleGitHubRequest(request) {
-  // Не перехватываем не-GET запросы
-  if (request.method !== 'GET') {
-    return fetch(request);
-  }
+// Handle GitHub write requests (POST, PUT, PATCH, DELETE)
+async function handleGitHubWriteRequest(request) {
+  try {
+    const token = await getStoredToken();
+    if (!token) {
+      throw new Error('No authentication token');
+    }
 
+    // Clone the request to add authorization headers
+    const headers = new Headers(request.headers);
+    headers.set('Accept', 'application/vnd.github.v3+json');
+    headers.set('Authorization', `Bearer ${token}`);
+    
+    const authRequest = new Request(request, { headers });
+    
+    // Try to send the request
+    const response = await fetch(authRequest);
+    
+    if (response.ok) {
+      // Clear relevant caches after successful write
+      await clearRelatedCaches(request.url);
+      return response;
+    }
+    
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    
+  } catch (error) {
+    console.error('Write request failed:', error);
+    
+    // If offline or error, queue the request for later
+    if (!navigator.onLine || error.message.includes('Failed to fetch')) {
+      await queueOfflineRequest(request);
+      return new Response(JSON.stringify({
+        queued: true,
+        message: 'Request queued for offline sync',
+        originalUrl: request.url,
+        method: request.method
+      }), {
+        status: 202,
+        statusText: 'Accepted',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Return error response
+    return new Response(JSON.stringify({
+      error: true,
+      message: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// Handle GitHub read requests (GET) - network first, cache fallback
+async function handleGitHubReadRequest(request) {
   try {
     const token = await getStoredToken();
     
-    // Создаем запрос с авторизацией
+    // Create request with authorization
     const headers = new Headers();
-    headers.set('Accept', 'application/vnd.github+json');
+    headers.set('Accept', 'application/vnd.github.v3+json');
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
     
-    // Копируем оригинальные заголовки запроса
+    // Copy original headers
     const originalHeaders = new Headers(request.headers);
     originalHeaders.forEach((value, key) => {
       if (key !== 'authorization' && key !== 'accept') {
@@ -116,13 +160,13 @@ async function handleGitHubRequest(request) {
       }
     });
 
-    const newRequest = new Request(request, { headers });
+    const authRequest = new Request(request, { headers });
     
-    // Пытаемся получить свежие данные из сети
-    const response = await fetch(newRequest);
+    // Try network first
+    const response = await fetch(authRequest);
     
     if (response.ok) {
-      // Кэшируем успешный ответ
+      // Cache successful response
       const cache = await caches.open(GITHUB_API_CACHE);
       cache.put(request.url, response.clone());
       console.log('Cached GitHub response:', request.url);
@@ -134,7 +178,7 @@ async function handleGitHubRequest(request) {
   } catch (error) {
     console.log('Network error, trying cache:', error.message);
     
-    // При ошибке сети пытаемся вернуть из кэша
+    // Try cache
     const cache = await caches.open(GITHUB_API_CACHE);
     const cachedResponse = await cache.match(request.url);
     
@@ -143,7 +187,7 @@ async function handleGitHubRequest(request) {
       return cachedResponse;
     }
     
-    // Нет ни сети, ни кэша
+    // No network, no cache
     return new Response(JSON.stringify({
       error: 'Offline',
       message: 'No internet connection and no cached data available'
@@ -152,6 +196,26 @@ async function handleGitHubRequest(request) {
       statusText: 'Service Unavailable',
       headers: { 'Content-Type': 'application/json' }
     });
+  }
+}
+
+// Handle gravatar requests
+async function handleGravatarRequest(request) {
+  const cache = await caches.open(EXTERNAL_CACHE);
+  const cached = await cache.match(request);
+  
+  if (cached) {
+    return cached;
+  }
+  
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    return cached || new Response('', { status: 204 });
   }
 }
 
@@ -173,7 +237,7 @@ async function handleStaticRequest(request) {
       return cached;
     }
 
-    // Для навигационных запросов возвращаем index.html
+    // For navigation requests, return index.html
     if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
       const shell = await caches.match('/index.html');
       if (shell) {
@@ -185,6 +249,161 @@ async function handleStaticRequest(request) {
       status: 503,
       statusText: 'Service Unavailable'
     });
+  }
+}
+
+// Queue offline request
+async function queueOfflineRequest(request) {
+  try {
+    const db = await openOfflineQueueDB();
+    const transaction = db.transaction([OFFLINE_QUEUE_STORE], 'readwrite');
+    const store = transaction.objectStore(OFFLINE_QUEUE_STORE);
+    
+    // Get request body
+    let body = null;
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      try {
+        body = await request.clone().text();
+      } catch (e) {
+        console.warn('Could not read request body:', e);
+      }
+    }
+    
+    const queueItem = {
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      url: request.url,
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries()),
+      body: body,
+      timestamp: Date.now(),
+      retries: 0
+    };
+    
+    await store.add(queueItem);
+    console.log('Request queued for offline sync:', queueItem);
+    
+    // Register background sync if available
+    await registerBackgroundSync();
+    
+  } catch (error) {
+    console.error('Failed to queue offline request:', error);
+  }
+}
+
+// Clear related caches after write operation
+async function clearRelatedCaches(requestUrl) {
+  try {
+    const cache = await caches.open(GITHUB_API_CACHE);
+    const keys = await cache.keys();
+    
+    // Extract repo path from URL
+    const url = new URL(requestUrl);
+    const pathParts = url.pathname.split('/');
+    
+    // Clear cache for list endpoints (e.g., /repos/owner/repo/issues)
+    let basePath = '';
+    for (let i = 0; i < pathParts.length; i++) {
+      basePath += pathParts[i] + '/';
+      await cache.delete(`${GITHUB_API_BASE}${basePath}`);
+    }
+    
+    console.log('Cleared related caches for:', requestUrl);
+  } catch (error) {
+    console.warn('Failed to clear caches:', error);
+  }
+}
+
+// Register background sync
+async function registerBackgroundSync() {
+  try {
+    const registration = await self.registration;
+    if ('sync' in registration) {
+      await registration.sync.register('sync-offline-requests');
+      console.log('Background sync registered');
+    }
+  } catch (error) {
+    console.warn('Background sync not supported:', error);
+  }
+}
+
+// Background sync event
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-offline-requests') {
+    event.waitUntil(syncOfflineRequests());
+  }
+});
+
+// Sync offline requests when back online
+async function syncOfflineRequests() {
+  console.log('Syncing offline requests...');
+  
+  try {
+    const token = await getStoredToken();
+    if (!token) {
+      console.log('No token available for sync');
+      return;
+    }
+    
+    const db = await openOfflineQueueDB();
+    const pendingRequests = await getAllPendingRequests(db);
+    
+    console.log(`Found ${pendingRequests.length} pending requests to sync`);
+    
+    for (const request of pendingRequests) {
+      try {
+        // Recreate the request
+        const headers = new Headers(request.headers);
+        headers.set('Authorization', `Bearer ${token}`);
+        headers.set('Accept', 'application/vnd.github.v3+json');
+        
+        const fetchOptions = {
+          method: request.method,
+          headers: headers
+        };
+        
+        if (request.body) {
+          fetchOptions.body = request.body;
+        }
+        
+        const response = await fetch(request.url, fetchOptions);
+        
+        if (response.ok) {
+          // Remove from queue on success
+          await deletePendingRequest(db, request.id);
+          console.log('Synced request:', request.url);
+          
+          // Notify clients
+          const clients = await self.clients.matchAll();
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'REQUEST_SYNCED',
+              url: request.url,
+              method: request.method
+            });
+          });
+        } else if (request.retries < 3) {
+          // Increment retry count and keep in queue
+          await updateRetryCount(db, request.id, request.retries + 1);
+          console.log(`Retry ${request.retries + 1} for:`, request.url);
+        } else {
+          // Max retries exceeded, remove from queue
+          await deletePendingRequest(db, request.id);
+          console.error('Max retries exceeded for:', request.url);
+        }
+        
+      } catch (error) {
+        console.error('Failed to sync request:', request.url, error);
+        
+        if (request.retries >= 3) {
+          await deletePendingRequest(db, request.id);
+        } else {
+          await updateRetryCount(db, request.id, request.retries + 1);
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error('Sync failed:', error);
   }
 }
 
@@ -215,10 +434,9 @@ async function storeToken(token) {
     await store.put({ id: 'github-token', token, timestamp: Date.now() });
 
     // Notify clients
-    self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({ type: 'TOKEN_STORED' });
-      });
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({ type: 'TOKEN_STORED' });
     });
 
     console.log('Token stored securely in service worker');
@@ -244,14 +462,83 @@ function openTokenDB() {
   });
 }
 
-// Message handling for token management
+// Open IndexedDB for offline queue
+function openOfflineQueueDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('OfflineQueueDB', 1);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(OFFLINE_QUEUE_STORE)) {
+        const store = db.createObjectStore(OFFLINE_QUEUE_STORE, { keyPath: 'id' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('retries', 'retries', { unique: false });
+      }
+    };
+  });
+}
+
+// Get all pending requests
+async function getAllPendingRequests(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([OFFLINE_QUEUE_STORE], 'readonly');
+    const store = transaction.objectStore(OFFLINE_QUEUE_STORE);
+    const request = store.getAll();
+    
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Delete pending request
+async function deletePendingRequest(db, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([OFFLINE_QUEUE_STORE], 'readwrite');
+    const store = transaction.objectStore(OFFLINE_QUEUE_STORE);
+    const request = store.delete(id);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Update retry count
+async function updateRetryCount(db, id, retries) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([OFFLINE_QUEUE_STORE], 'readwrite');
+    const store = transaction.objectStore(OFFLINE_QUEUE_STORE);
+    const getRequest = store.get(id);
+    
+    getRequest.onsuccess = () => {
+      const item = getRequest.result;
+      if (item) {
+        item.retries = retries;
+        const putRequest = store.put(item);
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      } else {
+        resolve();
+      }
+    };
+    getRequest.onerror = () => reject(getRequest.error);
+  });
+}
+
+// Message handling
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SET_TOKEN') {
-    storeToken(event.data.token);
-  } else if (event.data && event.data.type === 'CLEAR_CACHE') {
+  const { data } = event;
+  
+  if (data && data.type === 'SET_TOKEN') {
+    storeToken(data.token);
+  } 
+  else if (data && data.type === 'CLEAR_CACHE') {
     Promise.all([
       caches.delete(GITHUB_API_CACHE),
-      caches.delete(STATIC_CACHE)
+      caches.delete(STATIC_CACHE),
+      caches.delete(EXTERNAL_CACHE)
     ]).then(() => {
       console.log('All service worker caches cleared');
       self.clients.matchAll().then(clients => {
@@ -260,18 +547,40 @@ self.addEventListener('message', (event) => {
         });
       });
     });
-  } else if (event.data && event.data.type === 'CLEAR_TOKEN') {
+  } 
+  else if (data && data.type === 'CLEAR_TOKEN') {
     openTokenDB().then(db => {
       const transaction = db.transaction([TOKEN_STORE], 'readwrite');
       const store = transaction.objectStore(TOKEN_STORE);
       store.delete('github-token');
     });
-  } else if (event.data && event.data.type === 'REFRESH_CACHE') {
-    // Принудительно обновляем кэш для конкретного URL
+  }
+  else if (data && data.type === 'REFRESH_CACHE') {
     caches.open(GITHUB_API_CACHE).then(cache => {
-      cache.delete(event.data.url).then(() => {
-        console.log('Cache cleared for:', event.data.url);
+      cache.delete(data.url).then(() => {
+        console.log('Cache cleared for:', data.url);
       });
     });
   }
+  else if (data && data.type === 'GET_QUEUED_REQUESTS') {
+    openOfflineQueueDB().then(async db => {
+      const requests = await getAllPendingRequests(db);
+      event.source.postMessage({
+        type: 'QUEUED_REQUESTS',
+        requests: requests
+      });
+    });
+  }
+  else if (data && data.type === 'SYNC_NOW') {
+    event.waitUntil(syncOfflineRequests());
+  }
+  else if (data && data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Periodically sync when online
+self.addEventListener('online', () => {
+  console.log('Browser came online, syncing requests...');
+  syncOfflineRequests();
 });
