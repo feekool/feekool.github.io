@@ -149,9 +149,9 @@ export function ProfilePage() {
         <div className="flex justify-end">
           <button
             onClick={() => navigate('/admin')}
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-2 rounded-md btn-accent hover:opacity-90 text-white px-4 py-2 text-sm font-medium transition-colors"
           >
-            Админская панель
+            {t('adminPanel')}
           </button>
         </div>
       )}
@@ -176,8 +176,8 @@ export function ProfilePage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading || isResettingGravatar}
-                className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
-                title="Upload avatar"
+                className="absolute bottom-0 right-0 w-8 h-8 btn-accent hover:opacity-90 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
+                title={t('uploadAvatar')}
               >
                 {isUploading || isResettingGravatar ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -199,7 +199,7 @@ export function ProfilePage() {
               <p className="text-gray-600 dark:text-gray-400">@{user.username}</p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                Joined {new Date(user.joinedAt).toLocaleDateString()}
+                {t('joined')} {new Date(user.joinedAt).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export function ProfilePage() {
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Display Name
+              {t('displayName')}
             </label>
             {isEditing ? (
               <div className="flex gap-2">
@@ -218,7 +218,7 @@ export function ProfilePage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
-                  placeholder="Enter display name"
+                  placeholder={t('enterDisplayName')}
                 />
                 <button
                   onClick={handleSaveProfile}
@@ -230,7 +230,7 @@ export function ProfilePage() {
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
-                  Save
+                  {t('save')}
                 </button>
                 <button
                   onClick={() => {
@@ -249,7 +249,7 @@ export function ProfilePage() {
                   onClick={() => setIsEditing(true)}
                   className="link-accent hover:opacity-80 text-sm transition-colors"
                 >
-                  Edit
+                  {t('edit')}
                 </button>
               </div>
             )}
@@ -257,14 +257,14 @@ export function ProfilePage() {
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Username
+              {t('username')}
             </label>
             <span className="text-gray-600 dark:text-gray-400">@{user.username}</span>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Language
+              {t('language')}
             </label>
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-gray-400" />
@@ -274,7 +274,7 @@ export function ProfilePage() {
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Theme
+              {t('theme')}
             </label>
             <span className="text-gray-600 dark:text-gray-400 capitalize">{user.theme}</span>
           </div>
@@ -297,7 +297,7 @@ export function ProfilePage() {
             disabled={isResettingGravatar}
             className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors disabled:opacity-50"
           >
-            {isResettingGravatar ? 'Resetting...' : 'Reset to Gravatar Avatar'}
+            {isResettingGravatar ? t('resetting') : t('resetToGravatar')}
           </button>
           <button
             onClick={handleLogout}
@@ -310,12 +310,12 @@ export function ProfilePage() {
 
       {/* Avatar Upload Instructions */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Avatar Upload</h3>
+        <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">{t('avatarUploadTitle')}</h3>
         <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-          <li>• Supported formats: JPG, PNG, GIF, WebP</li>
-          <li>• Maximum file size: 2MB</li>
-          <li>• Recommended size: 200x200px or larger (square)</li>
-          <li>• Images are stored in the repository</li>
+          <li>• {t('avatarUploadFormats')}</li>
+          <li>• {t('avatarUploadMaxSize')}</li>
+          <li>• {t('avatarUploadRecommended')}</li>
+          <li>• {t('avatarUploadStored')}</li>
         </ul>
       </div>
     </div>
