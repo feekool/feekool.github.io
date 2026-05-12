@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getFile, putFile } from './github';
 import { parseFrontmatter, stringifyFrontmatter, generateGravatarUrl } from './utils';
 import { swManager } from './serviceWorker';
+import { DEFAULT_ACCENT_COLOR } from './userSettings';
 
 export interface User {
   username: string;
@@ -46,11 +47,13 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
       const file = await getFile(path);
 
       let userData: User;
+      let isNewUser = false;
 
       if (file) {
         const { data } = parseFrontmatter<User>(file.content);
         userData = { ...data, username };
       } else {
+        isNewUser = true;
         const defaultAvatarUrl = await generateGravatarUrl(username);
         userData = {
           username,
@@ -62,6 +65,19 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
         };
         const content = stringifyFrontmatter(userData, '');
         await putFile(path, content, `Create user ${username}`);
+      }
+
+      // Create default settings file if it doesn't exist
+      const settingsPath = `users/${username}-settings.md`;
+      const settingsFile = await getFile(settingsPath);
+      
+      if (!settingsFile) {
+        const defaultSettings = {
+          accentColor: DEFAULT_ACCENT_COLOR,
+          updatedAt: new Date().toISOString()
+        };
+        const settingsContent = stringifyFrontmatter(defaultSettings, '');
+        await putFile(settingsPath, settingsContent, `Create settings for ${username}`);
       }
 
       setUser(userData);

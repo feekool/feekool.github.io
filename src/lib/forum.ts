@@ -1,4 +1,4 @@
-import { getFile, putFile, listFiles, isFileCached } from './github';
+import { getFile, putFile, listFiles } from './github';
 import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate, normalizeText, slugify } from './utils';
 
 export interface Forum {
@@ -45,30 +45,25 @@ function matchesSearch(item: { author: string; body: string }, options?: { autho
   return true;
 }
 
-const cacheFilePaths = async (files: Array<{ name: string; path?: string }>) => {
-  await Promise.all(
-    files
-      .filter(file => file.name.endsWith('.md') && file.path && !isFileCached(file.path))
-      .map(file => getFile(file.path!))
-  );
-};
-
 export async function listForums(): Promise<Forum[]> {
   try {
     const files = await listFiles('forums');
     const forums: Forum[] = [];
 
-    await cacheFilePaths(files);
+    // Load all files in parallel, cache them, no duplicate requests
+    const fileDataPromises = files
+      .filter(file => file.name.endsWith('.md') && file.path)
+      .map(file => getFile(file.path!));
+    
+    const fileDataArray = await Promise.all(fileDataPromises);
 
-    for (const file of files) {
-      if (file.name.endsWith('.md') && file.path) {
-        const fileData = await getFile(file.path);
-        if (fileData) {
-          const { data } = parseFrontmatter<Forum>(fileData.content);
-          forums.push({ ...data, slug: file.name.replace('.md', '') });
-        }
+    fileDataArray.forEach((fileData, index) => {
+      if (fileData) {
+        const file = files[index];
+        const { data } = parseFrontmatter<Forum>(fileData.content);
+        forums.push({ ...data, slug: file.name.replace('.md', '') });
       }
-    }
+    });
 
     return forums.sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
   } catch (error: any) {
@@ -114,26 +109,29 @@ export async function listTopics(forumSlug: string, options?: { author?: string;
     const files = await listFiles('topics');
     const topics: Topic[] = [];
 
-    await cacheFilePaths(files);
+    // Load all files in parallel, cache them, no duplicate requests
+    const fileDataPromises = files
+      .filter(file => file.name.endsWith('.md') && file.path)
+      .map(file => getFile(file.path!));
+    
+    const fileDataArray = await Promise.all(fileDataPromises);
+    const mdFiles = files.filter(file => file.name.endsWith('.md') && file.path);
 
-    for (const file of files) {
-      if (file.name.endsWith('.md') && file.path) {
-        const fileData = await getFile(file.path);
-        if (fileData) {
-          const { data, content } = parseFrontmatter<Topic>(fileData.content);
-          if (data.forumSlug === forumSlug) {
-            const topic = {
-              ...data,
-              id: file.name.replace('.md', ''),
-              body: content
-            };
-            if (matchesSearch(topic, options)) {
-              topics.push(topic);
-            }
+    fileDataArray.forEach((fileData, index) => {
+      if (fileData) {
+        const { data, content } = parseFrontmatter<Topic>(fileData.content);
+        if (data.forumSlug === forumSlug) {
+          const topic = {
+            ...data,
+            id: mdFiles[index].name.replace('.md', ''),
+            body: content
+          };
+          if (matchesSearch(topic, options)) {
+            topics.push(topic);
           }
         }
       }
-    }
+    });
 
     return topics.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -188,26 +186,29 @@ export async function listPosts(topicId: string, options?: { author?: string; te
     const files = await listFiles('posts');
     const posts: Post[] = [];
 
-    await cacheFilePaths(files);
+    // Load all files in parallel, cache them, no duplicate requests
+    const fileDataPromises = files
+      .filter(file => file.name.endsWith('.md') && file.path)
+      .map(file => getFile(file.path!));
+    
+    const fileDataArray = await Promise.all(fileDataPromises);
+    const mdFiles = files.filter(file => file.name.endsWith('.md') && file.path);
 
-    for (const file of files) {
-      if (file.name.endsWith('.md') && file.path) {
-        const fileData = await getFile(file.path);
-        if (fileData) {
-          const { data, content } = parseFrontmatter<Post>(fileData.content);
-          if (data.topicId === topicId) {
-            const post = {
-              ...data,
-              id: file.name.replace('.md', ''),
-              body: content
-            };
-            if (matchesSearch(post, options)) {
-              posts.push(post);
-            }
+    fileDataArray.forEach((fileData, index) => {
+      if (fileData) {
+        const { data, content } = parseFrontmatter<Post>(fileData.content);
+        if (data.topicId === topicId) {
+          const post = {
+            ...data,
+            id: mdFiles[index].name.replace('.md', ''),
+            body: content
+          };
+          if (matchesSearch(post, options)) {
+            posts.push(post);
           }
         }
       }
-    }
+    });
 
     return posts.sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()

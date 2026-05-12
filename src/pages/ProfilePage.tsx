@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Save, User as UserIcon, Calendar, Globe } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useTranslation } from '../lib/i18n';
-import { putFile } from '../lib/github';
+import { putFile, getFile } from '../lib/github';
 import { stringifyFrontmatter, generateGravatarUrl, safeLogError } from '../lib/utils';
 import { ColorPicker } from '../components/ColorPicker';
 
@@ -61,7 +61,12 @@ export function ProfilePage() {
         };
 
         const content = stringifyFrontmatter(updatedUser, '');
-        await putFile(`users/${user.username}.md`, content, `Update profile for ${user.username}`);
+        
+        // Get the current file with SHA to avoid 422 error
+        const userPath = `users/${user.username}.md`;
+        const existingFile = await getFile(userPath);
+        
+        await putFile(userPath, content, `Update profile for ${user.username}`, false, existingFile?.sha);
 
         // Update local storage
         localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -90,7 +95,12 @@ export function ProfilePage() {
       };
 
       const content = stringifyFrontmatter(updatedUser, '');
-      await putFile(`users/${user.username}.md`, content, `Update profile for ${user.username}`);
+      
+      // Get the current file with SHA to avoid 422 error
+      const userPath = `users/${user.username}.md`;
+      const existingFile = await getFile(userPath);
+      
+      await putFile(userPath, content, `Update profile for ${user.username}`, false, existingFile?.sha);
 
       // Update local storage
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -116,7 +126,12 @@ export function ProfilePage() {
         avatar: defaultAvatarUrl
       };
       const content = stringifyFrontmatter(updatedUser, '');
-      await putFile(`users/${user.username}.md`, content, `Reset avatar to Gravatar for ${user.username}`);
+      
+      // Get the current file with SHA to avoid 422 error
+      const userPath = `users/${user.username}.md`;
+      const existingFile = await getFile(userPath);
+      
+      await putFile(userPath, content, `Reset avatar to Gravatar for ${user.username}`, false, existingFile?.sha);
       localStorage.setItem('user', JSON.stringify(updatedUser));
       window.location.reload();
     } catch (error) {

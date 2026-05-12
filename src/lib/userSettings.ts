@@ -47,7 +47,11 @@ export async function saveUserSettings(username: string, settings: UserSettings)
   try {
     const path = `users/${username}-settings.md`;
     const content = stringifyFrontmatter(settings, '');
-    await putFile(path, content, `Update settings for ${username}`);
+    
+    // Get the current file with SHA to avoid 422 error
+    const existingFile = await getFile(path);
+    
+    await putFile(path, content, `Update settings for ${username}`, false, existingFile?.sha);
     
     // Clear cache to ensure fresh data on next load
     if (typeof clearGitHubApiCache === 'function') {
