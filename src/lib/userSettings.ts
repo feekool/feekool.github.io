@@ -3,6 +3,7 @@
 
 import { getFile, putFile } from './github';
 import { parseFrontmatter, stringifyFrontmatter, safeLogError } from './utils';
+import { clearGitHubApiCache } from './serviceWorker';
 
 export interface UserSettings {
   accentColor: string; // RGB color string like "rgb(59, 130, 246)"
@@ -47,6 +48,11 @@ export async function saveUserSettings(username: string, settings: UserSettings)
     const path = `users/${username}-settings.md`;
     const content = stringifyFrontmatter(settings, '');
     await putFile(path, content, `Update settings for ${username}`);
+    
+    // Clear cache to ensure fresh data on next load
+    if (typeof clearGitHubApiCache === 'function') {
+      await clearGitHubApiCache();
+    }
   } catch (error) {
     safeLogError('Error saving user settings:', error);
     throw error;

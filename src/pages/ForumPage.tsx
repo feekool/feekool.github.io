@@ -248,7 +248,7 @@ export function ForumPage() {
                   <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 disabled:opacity-50">
+                  className="px-4 py-2 btn-accent hover:opacity-90 text-white rounded-md flex items-center gap-2 disabled:opacity-50">
                   
                     {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
                     {t('create')}

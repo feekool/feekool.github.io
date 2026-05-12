@@ -130,7 +130,7 @@ export function AdminPage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-medium transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-xl btn-accent hover:opacity-90 text-white px-4 py-3 text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Сохранение...' : 'Сохранить настройки'}
               {!isSaving && <Save className="w-4 h-4" />}

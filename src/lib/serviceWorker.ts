@@ -144,3 +144,8 @@ class ServiceWorkerManager {
 
 // Export singleton instance
 export const swManager = new ServiceWorkerManager();
+
+// Export cache clearing function
+export const clearGitHubApiCache = async (): Promise<void> => {
+  await swManager.clearCache();
+};
