@@ -6,6 +6,7 @@ const GITHUB_API_BASE = 'https://api.github.com';
 const GITHUB_API_CACHE = 'github-api-cache-v2';
 const STATIC_CACHE = 'static-cache-v2';
 const TOKEN_STORE = 'github-token-store';
+const STATIC_ASSETS = ['/', '/index.html', '/sw.js'];
 
 // Install event - cache essential static assets
 self.addEventListener('install', (event) => {
@@ -105,7 +106,6 @@ async function handleStaticRequest(request) {
   try {
     const response = await fetch(request);
     if (response.ok) {
-      // Cache successful responses
       const cache = await caches.open(STATIC_CACHE);
       cache.put(request, response.clone()).catch(err => {
         console.warn('Failed to cache response:', err);
@@ -114,12 +114,19 @@ async function handleStaticRequest(request) {
     }
     throw new Error('Network response not ok');
   } catch (error) {
-    // Fall back to cache
     const cached = await caches.match(request);
     if (cached) {
       return cached;
     }
-    
+
+    const navigationFallback = request.mode === 'navigate' || (request.headers.get('accept')?.includes('text/html'));
+    if (navigationFallback) {
+      const shell = await caches.match('/index.html');
+      if (shell) {
+        return shell;
+      }
+    }
+
     return new Response('Offline - Resource unavailable', {
       status: 503,
       statusText: 'Service Unavailable'
