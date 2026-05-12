@@ -7,6 +7,50 @@
 
 /* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
 
+/* Accent color CSS variables */
+:root {
+  --accent-r: 59;
+  --accent-g: 130;
+  --accent-b: 246;
+  --accent-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+/* Apply accent color to interactive elements */
+.accent-bg {
+  background-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+.accent-text {
+  color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+.accent-border {
+  border-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+.accent-hover:hover {
+  background-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+/* Button styles with accent color */
+.btn-accent {
+  background-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+  color: white;
+}
+
+.btn-accent:hover {
+  background-color: rgb(calc(var(--accent-r) - 20), calc(var(--accent-g) - 20), calc(var(--accent-b) - 20));
+}
+
+/* Link styles with accent color */
+.link-accent {
+  color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+}
+
+.link-accent:hover {
+  color: rgb(calc(var(--accent-r) - 30), calc(var(--accent-g) - 30), calc(var(--accent-b) - 30));
+}
+
 /* Mobile viewport and input focus fixes */
 @supports (-webkit-touch-callout: none) {
   /* iOS Safari specific fixes */

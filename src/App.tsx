@@ -102,24 +102,30 @@ function AppRoutes() {
     </Routes>);
 
 }
-export function App() {
-  const basename = import.meta.env.BASE_URL || '/';
+function AppContent() {
+  const { user } = useAuth();
 
   return (
-    <ErrorBoundary>
-      <ThemeProvider>
-        <LanguageProvider>
-          <AuthProvider>
-            <AdminSettingsProvider>
-              <RateLimitProvider>
-                <BrowserRouter basename={basename}>
-                  <AppRoutes />
-                </BrowserRouter>
-              </RateLimitProvider>
-            </AdminSettingsProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </ErrorBoundary>);
+    <ThemeProvider username={user?.username}>
+      <AdminSettingsProvider>
+        <RateLimitProvider>
+          <BrowserRouter basename={import.meta.env.BASE_URL || '/'}>
+            <AppRoutes />
+          </BrowserRouter>
+        </RateLimitProvider>
+      </AdminSettingsProvider>
+    </ThemeProvider>
+  );
+}
 
+export function App() {
+  return (
+    <ErrorBoundary>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
+  );
 }

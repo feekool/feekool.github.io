@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth';
 import { useTranslation } from '../lib/i18n';
 import { putFile } from '../lib/github';
 import { stringifyFrontmatter, generateGravatarUrl, safeLogError } from '../lib/utils';
+import { ColorPicker } from '../components/ColorPicker';
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
@@ -222,7 +223,7 @@ export function ProfilePage() {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isSaving || !displayName.trim()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 btn-accent hover:opacity-90 text-white rounded-md flex items-center gap-2 disabled:opacity-50 transition-colors"
                 >
                   {isSaving ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -246,7 +247,7 @@ export function ProfilePage() {
                 <span className="text-gray-900 dark:text-gray-100">{user.displayName}</span>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
+                  className="link-accent hover:opacity-80 text-sm transition-colors"
                 >
                   Edit
                 </button>
@@ -277,6 +278,16 @@ export function ProfilePage() {
             </label>
             <span className="text-gray-600 dark:text-gray-400 capitalize">{user.theme}</span>
           </div>
+        </div>
+
+        {/* Color Picker */}
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+          <ColorPicker
+            username={user.username}
+            onColorChange={(color) => {
+              console.log('Accent color changed to:', color);
+            }}
+          />
         </div>
 
         {/* Actions */}

@@ -29,6 +29,12 @@ const translations = {
     offlineTopicError: 'Topic not available offline - please check your connection',
     offlineForumError: 'Forum not available offline - please check your connection',
     offlinePostError: 'Cannot create posts while offline. Please check your internet connection.',
+    accentColor: 'Accent Color',
+    accentColorDescription: 'Choose your accent color that will be applied throughout the interface.',
+    customColor: 'Custom Color',
+    apply: 'Apply',
+    currentColor: 'Current',
+    colorAppliedTo: 'This color is applied to buttons, links, and interactive elements',
     retry: 'Retry',
     by: 'by',
     joined: 'Joined',
@@ -110,7 +116,17 @@ const translations = {
     maintenanceMessage: 'Сайт находится в режиме обслуживания. Повторите попытку позже.',
     signupsDisabled: 'Регистрация временно отключена. Пожалуйста, войдите в существующий аккаунт.',
     adminSettingsLoading: 'Загрузка настроек администратора...',
-    maintenanceBanner: 'Сайт находится в режиме обслуживания. Некоторые функции могут быть ограничены.'
+    maintenanceBanner: 'Сайт находится в режиме обслуживания. Некоторые функции могут быть ограничены.',
+    offlineError: 'Режим оффлайн - просмотр кешированных данных',
+    offlineTopicError: 'Тема недоступна в оффлайне - проверьте подключение к интернету',
+    offlineForumError: 'Форум недоступен в оффлайне - проверьте подключение к интернету',
+    offlinePostError: 'Невозможно создавать сообщения в оффлайне. Проверьте подключение к интернету.',
+    accentColor: 'Акцентный цвет',
+    accentColorDescription: 'Выберите акцентный цвет, который будет применяться во всем интерфейсе.',
+    customColor: 'Пользовательский цвет',
+    apply: 'Применить',
+    currentColor: 'Текущий',
+    colorAppliedTo: 'Этот цвет применяется к кнопкам, ссылкам и интерактивным элементам'
   }
 };
 

@@ -10,6 +10,7 @@ export interface User {
   joinedAt: string;
   lang: string;
   theme: string;
+  accentColor?: string; // RGB color string like "rgb(59, 130, 246)"
 }
 
 interface AuthContextType {
