@@ -5,6 +5,7 @@
 const GITHUB_API_BASE = 'https://api.github.com';
 const GITHUB_API_CACHE = 'github-api-cache-v2';
 const STATIC_CACHE = 'static-cache-v2';
+const EXTERNAL_CACHE = 'external-cache-v1';
 const TOKEN_STORE = 'github-token-store';
 const STATIC_ASSETS = ['/', '/index.html', '/sw.js'];
 
@@ -33,7 +34,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== GITHUB_API_CACHE && cacheName !== STATIC_CACHE) {
+          if (cacheName !== GITHUB_API_CACHE && cacheName !== STATIC_CACHE && cacheName !== EXTERNAL_CACHE) {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -48,12 +49,50 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Don't intercept non-GET requests to our own origin (they should go directly)
+  if (url.origin === location.origin && event.request.method !== 'GET') {
+    return;
+  }
+
   // Handle all GitHub API requests
   if (url.origin === GITHUB_API_BASE) {
     event.respondWith(handleGitHubRequest(event.request));
+    return;
   }
-  // Handle static assets with network-first strategy
-  else if (event.request.method === 'GET') {
+
+  // Allow external resources to pass through without caching scripts
+  // Only handle if method is GET
+  if (event.request.method === 'GET') {
+    // For gravatar images - cache them, but let umnico and other scripts pass through
+    if ((url.hostname.includes('gravatar.com') || url.hostname.includes('www.gravatar.com')) && 
+        event.request.destination === 'image') {
+      event.respondWith(
+        caches.open(EXTERNAL_CACHE).then(cache => {
+          return cache.match(event.request).then(cached => {
+            return fetch(event.request)
+              .then(response => {
+                if (response && response.status === 200) {
+                  cache.put(event.request, response.clone());
+                }
+                return response;
+              })
+              .catch(() => cached || new Response('', { status: 204 }));
+          });
+        })
+      );
+      return;
+    }
+
+    // For umnico and other external resources - network only, don't cache scripts
+    if (url.hostname.includes('umnico.com') || url.hostname.includes('www.umnico.com')) {
+      event.respondWith(
+        fetch(event.request)
+          .catch(() => new Response('', { status: 204 }))
+      );
+      return;
+    }
+
+    // Handle static assets with network-first strategy
     event.respondWith(handleStaticRequest(event.request));
   }
 });
