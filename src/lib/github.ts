@@ -1,5 +1,6 @@
 import { config } from '../config/app';
 import { handleApiError } from './apiErrorHandler';
+import { isOfflineError } from './utils';
 
 const { owner, repo, branch } = config.github;
 const BASE = 'https://api.github.com';
@@ -99,6 +100,12 @@ export async function getFile(path: string) {
     }
     return null;
   } catch (error: any) {
+    // In offline mode, don't throw error - just return null
+    // The calling code should handle missing data gracefully
+    if (!navigator.onLine || isOfflineError(error)) {
+      console.log(`Offline mode: ${path} not available in cache`);
+      return null;
+    }
     if (error.message?.includes('404')) return null;
     handleApiError(error, 'getFile');
   }
@@ -149,6 +156,11 @@ export async function listFiles(path: string) {
     if (Array.isArray(data)) return data;
     return [];
   } catch (error: any) {
+    // In offline mode, return empty array instead of throwing error
+    if (!navigator.onLine || isOfflineError(error)) {
+      console.log(`Offline mode: cannot list files in ${path}`);
+      return [];
+    }
     if (error.message?.includes('404')) return [];
     handleApiError(error, 'listFiles');
   }

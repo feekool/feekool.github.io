@@ -53,10 +53,20 @@ export function TopicPage() {
         getTopic(id),
         listPosts(id, { author: debouncedAuthorSearch || undefined, text: debouncedTextSearch || undefined })
       ]);
-      setTopic(topicData);
+      
+      // In offline mode, we might get null for topic but still have posts
+      // Show what we can
+      if (topicData) {
+        setTopic(topicData);
+      } else if (!navigator.onLine) {
+        setError('Topic not available offline - please check your connection');
+        setIsLoading(false);
+        return;
+      }
+      
       setPosts(postsData);
       
-      // Load avatars for all authors
+      // Load avatars for all authors (this can fail in offline mode)
       const allAuthors = new Set<string>();
       if (topicData) allAuthors.add(topicData.author);
       postsData.forEach(post => allAuthors.add(post.author));
@@ -76,14 +86,21 @@ export function TopicPage() {
             avatars[author] = await generateGravatarUrl(author);
           }
         } catch (err) {
-          // Fallback to Gravatar if user file not found
+          // Fallback to Gravatar if user file not found or offline
           avatars[author] = await generateGravatarUrl(author);
         }
       }
       setAuthorAvatars(avatars);
     } catch (err: any) {
       safeLogError('Error loading topic data:', err);
-      setError(t('error'));
+      
+      // Check if this is an offline/network error
+      const { isOfflineError, getOfflineErrorMessage } = await import('../lib/utils');
+      if (isOfflineError(err)) {
+        setError(getOfflineErrorMessage('Loading topic'));
+      } else {
+        setError(t('error'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -94,6 +111,9 @@ export function TopicPage() {
   const allMessages = topic ? [
     { id: 'original', author: topic.author, body: topic.body, createdAt: topic.createdAt },
     ...posts
+  ] : posts.length > 0 ? [
+    // If we have posts but no topic, show posts with a note
+    ...posts.map(post => ({ ...post, isOrphanPost: true }))
   ] : [];
   const filteredMessages = allMessages.filter(message =>
     (debouncedAuthorSearch === '' || normalizeText(message.author).includes(normalizeText(debouncedAuthorSearch))) &&
@@ -107,6 +127,13 @@ export function TopicPage() {
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !id || !replyBody.trim()) return;
+    
+    // Check if offline
+    if (!navigator.onLine) {
+      alert('Cannot create posts while offline. Please check your internet connection.');
+      return;
+    }
+    
     setIsReplying(true);
     try {
       const newPost = await createPost({
@@ -165,6 +192,11 @@ export function TopicPage() {
             )}
           </div>
           <div className="p-6 flex-1">
+            {message.isOrphanPost && (
+              <div className="mb-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
+                📴 Offline: Original topic not available
+              </div>
+            )}
             <MarkdownContent content={message.body} />
             {user && (
               <button

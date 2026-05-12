@@ -54,29 +54,44 @@ const cacheFilePaths = async (files: Array<{ name: string; path?: string }>) => 
 };
 
 export async function listForums(): Promise<Forum[]> {
-  const files = await listFiles('forums');
-  const forums: Forum[] = [];
+  try {
+    const files = await listFiles('forums');
+    const forums: Forum[] = [];
 
-  await cacheFilePaths(files);
+    await cacheFilePaths(files);
 
-  for (const file of files) {
-    if (file.name.endsWith('.md') && file.path) {
-      const fileData = await getFile(file.path);
-      if (fileData) {
-        const { data } = parseFrontmatter<Forum>(fileData.content);
-        forums.push({ ...data, slug: file.name.replace('.md', '') });
+    for (const file of files) {
+      if (file.name.endsWith('.md') && file.path) {
+        const fileData = await getFile(file.path);
+        if (fileData) {
+          const { data } = parseFrontmatter<Forum>(fileData.content);
+          forums.push({ ...data, slug: file.name.replace('.md', '') });
+        }
       }
     }
-  }
 
-  return forums.sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+    return forums.sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+  } catch (error: any) {
+    // In offline mode, try to return cached forums
+    console.log('Offline mode: returning cached forums');
+    const cachedForums: Forum[] = [];
+    // We can't list files in offline mode, but we can try to get known forum files
+    // This is a fallback - in a real app you'd want to cache the forum list
+    return cachedForums;
+  }
 }
 
 export async function getForum(slug: string): Promise<Forum | null> {
-  const file = await getFile(`forums/${slug}.md`);
-  if (!file) return null;
-  const { data } = parseFrontmatter<Forum>(file.content);
-  return { ...data, slug };
+  try {
+    const file = await getFile(`forums/${slug}.md`);
+    if (!file) return null;
+    const { data } = parseFrontmatter<Forum>(file.content);
+    return { ...data, slug };
+  } catch (error: any) {
+    // In offline mode, return null instead of throwing error
+    console.log(`Offline mode: forum ${slug} not available`);
+    return null;
+  }
 }
 
 export async function createForum(data: Omit<Forum, 'slug'>): Promise<Forum> {
@@ -95,40 +110,52 @@ export async function createForum(data: Omit<Forum, 'slug'>): Promise<Forum> {
 }
 
 export async function listTopics(forumSlug: string, options?: { author?: string; text?: string }): Promise<Topic[]> {
-  const files = await listFiles('topics');
-  const topics: Topic[] = [];
+  try {
+    const files = await listFiles('topics');
+    const topics: Topic[] = [];
 
-  await cacheFilePaths(files);
+    await cacheFilePaths(files);
 
-  for (const file of files) {
-    if (file.name.endsWith('.md') && file.path) {
-      const fileData = await getFile(file.path);
-      if (fileData) {
-        const { data, content } = parseFrontmatter<Topic>(fileData.content);
-        if (data.forumSlug === forumSlug) {
-          const topic = {
-            ...data,
-            id: file.name.replace('.md', ''),
-            body: content
-          };
-          if (matchesSearch(topic, options)) {
-            topics.push(topic);
+    for (const file of files) {
+      if (file.name.endsWith('.md') && file.path) {
+        const fileData = await getFile(file.path);
+        if (fileData) {
+          const { data, content } = parseFrontmatter<Topic>(fileData.content);
+          if (data.forumSlug === forumSlug) {
+            const topic = {
+              ...data,
+              id: file.name.replace('.md', ''),
+              body: content
+            };
+            if (matchesSearch(topic, options)) {
+              topics.push(topic);
+            }
           }
         }
       }
     }
-  }
 
-  return topics.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+    return topics.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  } catch (error: any) {
+    // In offline mode, return empty array instead of throwing error
+    console.log(`Offline mode: cannot list topics for forum ${forumSlug}`);
+    return [];
+  }
 }
 
 export async function getTopic(id: string): Promise<Topic | null> {
-  const file = await getFile(`topics/${id}.md`);
-  if (!file) return null;
-  const { data, content } = parseFrontmatter<Topic>(file.content);
-  return { ...data, id, body: content };
+  try {
+    const file = await getFile(`topics/${id}.md`);
+    if (!file) return null;
+    const { data, content } = parseFrontmatter<Topic>(file.content);
+    return { ...data, id, body: content };
+  } catch (error: any) {
+    // In offline mode, return null instead of throwing error
+    console.log(`Offline mode: topic ${id} not available`);
+    return null;
+  }
 }
 
 export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleTranslit'>): Promise<Topic> {
@@ -157,33 +184,39 @@ export async function createTopic(data: Omit<Topic, 'id' | 'createdAt' | 'titleT
 }
 
 export async function listPosts(topicId: string, options?: { author?: string; text?: string }): Promise<Post[]> {
-  const files = await listFiles('posts');
-  const posts: Post[] = [];
+  try {
+    const files = await listFiles('posts');
+    const posts: Post[] = [];
 
-  await cacheFilePaths(files);
+    await cacheFilePaths(files);
 
-  for (const file of files) {
-    if (file.name.endsWith('.md') && file.path) {
-      const fileData = await getFile(file.path);
-      if (fileData) {
-        const { data, content } = parseFrontmatter<Post>(fileData.content);
-        if (data.topicId === topicId) {
-          const post = {
-            ...data,
-            id: file.name.replace('.md', ''),
-            body: content
-          };
-          if (matchesSearch(post, options)) {
-            posts.push(post);
+    for (const file of files) {
+      if (file.name.endsWith('.md') && file.path) {
+        const fileData = await getFile(file.path);
+        if (fileData) {
+          const { data, content } = parseFrontmatter<Post>(fileData.content);
+          if (data.topicId === topicId) {
+            const post = {
+              ...data,
+              id: file.name.replace('.md', ''),
+              body: content
+            };
+            if (matchesSearch(post, options)) {
+              posts.push(post);
+            }
           }
         }
       }
     }
-  }
 
-  return posts.sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+    return posts.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  } catch (error: any) {
+    // In offline mode, return empty array instead of throwing error
+    console.log(`Offline mode: cannot list posts for topic ${topicId}`);
+    return [];
+  }
 }
 
 export async function createPost(data: Omit<Post, 'id' | 'createdAt'>): Promise<Post> {

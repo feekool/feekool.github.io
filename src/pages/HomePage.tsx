@@ -24,7 +24,14 @@ export function HomePage() {
       setForums(data);
     } catch (err: any) {
       safeLogError('Error loading forums:', err);
-      setError(t('error'));
+      
+      // Check if this is an offline/network error
+      const { isOfflineError, getOfflineErrorMessage } = await import('../lib/utils');
+      if (isOfflineError(err)) {
+        setError(getOfflineErrorMessage('Loading forums'));
+      } else {
+        setError(t('error'));
+      }
     } finally {
       setIsLoading(false);
     }

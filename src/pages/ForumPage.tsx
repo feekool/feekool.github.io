@@ -56,11 +56,27 @@ export function ForumPage() {
       getForum(slug),
       listTopics(slug, { author: debouncedAuthorSearch || undefined, text: debouncedTextSearch || undefined })
       ]);
-      setForum(forumData);
+      
+      // In offline mode, we might get null for forum but still have topics
+      if (forumData) {
+        setForum(forumData);
+      } else if (!navigator.onLine) {
+        setError('Forum not available offline - please check your connection');
+        setIsLoading(false);
+        return;
+      }
+      
       setTopics(topicsData);
     } catch (err: any) {
       safeLogError('Error loading forum data:', err);
-      setError(t('error'));
+      
+      // Check if this is an offline/network error
+      const { isOfflineError, getOfflineErrorMessage } = await import('../lib/utils');
+      if (isOfflineError(err)) {
+        setError(getOfflineErrorMessage('Loading forum'));
+      } else {
+        setError(t('error'));
+      }
     } finally {
       setIsLoading(false);
     }
