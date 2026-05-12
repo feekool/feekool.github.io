@@ -9,6 +9,24 @@ const headers: Record<string, string> = {
   'Content-Type': 'application/json'
 };
 
+const fileCache = new Map<string, { content: string; sha?: string }>();
+
+export function getCachedFile(path: string) {
+  return fileCache.get(path) || null;
+}
+
+export function isFileCached(path: string) {
+  return fileCache.has(path);
+}
+
+export function clearFileCache(path?: string) {
+  if (path) {
+    fileCache.delete(path);
+  } else {
+    fileCache.clear();
+  }
+}
+
 // Remove token from headers - it will be added by service worker
 // if (token) {
 //   headers.Authorization = `Bearer ${token}`;
@@ -58,6 +76,11 @@ async function createGitHubError(res: Response): Promise<Error> {
 }
 
 export async function getFile(path: string) {
+  const cached = fileCache.get(path);
+  if (cached) {
+    return { content: cached.content, sha: cached.sha };
+  }
+
   try {
     const res = await fetch(
       `${BASE}/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
@@ -70,7 +93,9 @@ export async function getFile(path: string) {
     const data = await res.json();
     if (data.content && !Array.isArray(data)) {
       const content = b64_to_utf8(data.content.replace(/\n/g, ''));
-      return { content, sha: data.sha as string };
+      const fileData = { content, sha: data.sha as string };
+      fileCache.set(path, fileData);
+      return fileData;
     }
     return null;
   } catch (error: any) {
@@ -102,7 +127,9 @@ sha?: string)
     if (!res.ok) {
       throw await createGitHubError(res);
     }
-    return res.json();
+    const data = await res.json();
+    fileCache.set(path, { content, sha: data.content?.sha });
+    return data;
   } catch (error: any) {
     handleApiError(error, 'putFile');
   }
@@ -137,6 +164,7 @@ export async function deleteFile(path: string, message: string, sha: string) {
     if (!res.ok) {
       throw await createGitHubError(res);
     }
+    fileCache.delete(path);
   } catch (error: any) {
     handleApiError(error, 'deleteFile');
   }

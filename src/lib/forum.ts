@@ -1,4 +1,4 @@
-import { getFile, putFile, listFiles } from './github';
+import { getFile, putFile, listFiles, isFileCached } from './github';
 import { parseFrontmatter, stringifyFrontmatter, generateId, transliterate, normalizeText, slugify } from './utils';
 
 export interface Forum {
@@ -45,12 +45,22 @@ function matchesSearch(item: { author: string; body: string }, options?: { autho
   return true;
 }
 
+const cacheFilePaths = async (files: Array<{ name: string; path?: string }>) => {
+  await Promise.all(
+    files
+      .filter(file => file.name.endsWith('.md') && file.path && !isFileCached(file.path))
+      .map(file => getFile(file.path!))
+  );
+};
+
 export async function listForums(): Promise<Forum[]> {
   const files = await listFiles('forums');
   const forums: Forum[] = [];
 
+  await cacheFilePaths(files);
+
   for (const file of files) {
-    if (file.name.endsWith('.md')) {
+    if (file.name.endsWith('.md') && file.path) {
       const fileData = await getFile(file.path);
       if (fileData) {
         const { data } = parseFrontmatter<Forum>(fileData.content);
@@ -88,8 +98,10 @@ export async function listTopics(forumSlug: string, options?: { author?: string;
   const files = await listFiles('topics');
   const topics: Topic[] = [];
 
+  await cacheFilePaths(files);
+
   for (const file of files) {
-    if (file.name.endsWith('.md')) {
+    if (file.name.endsWith('.md') && file.path) {
       const fileData = await getFile(file.path);
       if (fileData) {
         const { data, content } = parseFrontmatter<Topic>(fileData.content);
@@ -148,8 +160,10 @@ export async function listPosts(topicId: string, options?: { author?: string; te
   const files = await listFiles('posts');
   const posts: Post[] = [];
 
+  await cacheFilePaths(files);
+
   for (const file of files) {
-    if (file.name.endsWith('.md')) {
+    if (file.name.endsWith('.md') && file.path) {
       const fileData = await getFile(file.path);
       if (fileData) {
         const { data, content } = parseFrontmatter<Post>(fileData.content);
