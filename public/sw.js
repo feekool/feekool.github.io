@@ -48,8 +48,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Handle GitHub API GET requests
-  if (url.origin === GITHUB_API_BASE && event.request.method === 'GET') {
+  // Handle GitHub API requests for all methods
+  if (url.origin === GITHUB_API_BASE) {
     event.respondWith(handleGitHubRequest(event.request));
   }
   // Handle static assets with network-first strategy
@@ -64,40 +64,61 @@ async function handleGitHubRequest(request) {
     const token = await getStoredToken();
     if (!token) {
       console.warn('No token available');
-      return tryOfflineFallback(request);
+      if (request.method === 'GET') {
+        return tryOfflineFallback(request);
+      }
+      return fetch(request);
     }
 
-    const cache = await caches.open(GITHUB_API_CACHE);
-    const cacheKey = new Request(request.url, {
-      method: request.method,
-      headers: new Headers({ Accept: 'application/vnd.github+json' })
-    });
-
-    // Check cache first for offline support
-    const cachedResponse = await cache.match(cacheKey);
-    if (cachedResponse) {
-      return cachedResponse.clone();
-    }
-
-    // Create request with authorization
     const authHeaders = new Headers(request.headers);
     authHeaders.set('Authorization', `Bearer ${token}`);
     authHeaders.set('Accept', 'application/vnd.github+json');
 
-    const authRequest = new Request(request, { headers: authHeaders });
-    const response = await fetch(authRequest);
+    const authRequest = new Request(request, {
+      method: request.method,
+      headers: authHeaders,
+      body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+      mode: request.mode,
+      credentials: request.credentials,
+      cache: request.cache,
+      redirect: request.redirect,
+      referrer: request.referrer,
+      integrity: request.integrity
+    });
 
-    // Cache successful responses
-    if (response.ok) {
-      const responseClone = response.clone();
-      await cache.put(cacheKey, responseClone);
+    if (request.method === 'GET') {
+      const cache = await caches.open(GITHUB_API_CACHE);
+      const cacheKey = new Request(request.url, {
+        method: request.method,
+        headers: new Headers({ Accept: 'application/vnd.github+json' })
+      });
+      const cachedResponse = await cache.match(cacheKey);
+      if (cachedResponse) {
+        return cachedResponse.clone();
+      }
+
+      const response = await fetch(authRequest);
+      if (response.ok) {
+        const responseClone = response.clone();
+        await cache.put(cacheKey, responseClone);
+      }
+      return response;
     }
 
-    return response;
-
+    return await fetch(authRequest);
   } catch (error) {
     console.error('GitHub API fetch error:', error.message);
-    return tryOfflineFallback(request);
+    if (request.method === 'GET') {
+      return tryOfflineFallback(request);
+    }
+    return new Response(JSON.stringify({
+      error: 'Offline',
+      message: 'Unable to complete GitHub request while offline'
+    }), {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 
