@@ -77,9 +77,14 @@ async function createGitHubError(res: Response): Promise<Error> {
 }
 
 export async function getFile(path: string) {
-  const cached = fileCache.get(path);
-  if (cached) {
-    return { content: cached.content, sha: cached.sha };
+  // Don't use cache for user settings files to ensure fresh data
+  const isSetting = path.includes('users/') && path.endsWith('-settings.md');
+  
+  if (!isSetting) {
+    const cached = fileCache.get(path);
+    if (cached) {
+      return { content: cached.content, sha: cached.sha };
+    }
   }
 
   try {
@@ -87,7 +92,10 @@ export async function getFile(path: string) {
       `${BASE}/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
       { headers }
     );
-    if (res.status === 404) return null;
+    if (res.status === 404) {
+      console.log(`File not found: ${path}`);
+      return null;
+    }
     if (!res.ok) {
       throw await createGitHubError(res);
     }
@@ -95,7 +103,9 @@ export async function getFile(path: string) {
     if (data.content && !Array.isArray(data)) {
       const content = b64_to_utf8(data.content.replace(/\n/g, ''));
       const fileData = { content, sha: data.sha as string };
-      fileCache.set(path, fileData);
+      if (!isSetting) {
+        fileCache.set(path, fileData);
+      }
       return fileData;
     }
     return null;

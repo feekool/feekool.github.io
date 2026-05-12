@@ -31,10 +31,12 @@ export async function loadUserSettings(username: string): Promise<UserSettings |
     const file = await getFile(path);
 
     if (!file) {
+      console.log(`User settings file not found for ${username}`);
       return null;
     }
 
     const { data } = parseFrontmatter<UserSettings>(file.content);
+    console.log(`Loaded user settings for ${username}:`, data);
     return data;
   } catch (error) {
     safeLogError('Error loading user settings:', error);
@@ -77,13 +79,16 @@ export async function getUserAccentColor(username: string): Promise<string> {
 // Update accent color for user
 export async function updateUserAccentColor(username: string, color: string): Promise<void> {
   try {
+    console.log(`Updating accent color for ${username} to ${color}`);
     const existingSettings = await loadUserSettings(username);
     const settings: UserSettings = {
       accentColor: color,
       updatedAt: new Date().toISOString(),
       ...existingSettings,
     };
+    console.log(`Settings to save:`, settings);
     await saveUserSettings(username, settings);
+    console.log(`Successfully updated accent color for ${username}`);
   } catch (error) {
     safeLogError('Error updating user accent color:', error);
     throw error;

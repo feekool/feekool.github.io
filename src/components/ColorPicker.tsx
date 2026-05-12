@@ -23,10 +23,13 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
   useEffect(() => {
     const loadUserColor = async () => {
       try {
+        console.log(`Loading accent color for ${username}`);
         const userColor = await getUserAccentColor(username);
+        console.log(`Loaded accent color: ${userColor}`);
         setAccentColor(userColor);
         setCustomColor(userColor);
       } catch (error) {
+        console.error('Error loading user color:', error);
         // Keep default color on error
       } finally {
         setIsLoading(false);
@@ -35,19 +38,36 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
     loadUserColor();
   }, [username, setAccentColor]);
 
-  // Keep customColor in sync with accentColor
+  // Keep customColor in sync with accentColor but don't override if it was just changed
   useEffect(() => {
-    setCustomColor(accentColor);
-  }, [accentColor]);
+    if (!isSaving) {
+      setCustomColor(accentColor);
+    }
+  }, [accentColor, isSaving]);
 
   const handleColorSelect = async (color: string) => {
+    console.log(`Selected color: ${color}`);
     // Apply color immediately for instant feedback
     setAccentColor(color);
+    setCustomColor(color);
     onColorChange?.(color);
 
     setIsSaving(true);
     try {
       await updateUserAccentColor(username, color);
+      console.log(`Successfully saved accent color: ${color}`);
+    } catch (error) {
+      safeLogError('Error saving accent color:', error);
+      // Revert color back to previous if save failed
+      const previousColor = await getUserAccentColor(username);
+      setAccentColor(previousColor);
+      setCustomColor(previousColor);
+      onColorChange?.(previousColor);
+      alert(t('colorSaveError'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
     } catch (error) {
       safeLogError('Error saving accent color:', error);
       // Revert color back to previous if save failed
@@ -61,10 +81,12 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
   };
 
   const handleCustomColorChange = (color: string) => {
+    console.log(`Custom color input changed to: ${color}`);
     setCustomColor(color);
   };
 
   const handleCustomColorApply = () => {
+    console.log(`Applying custom color: ${customColor}`);
     handleColorSelect(customColor);
   };
 

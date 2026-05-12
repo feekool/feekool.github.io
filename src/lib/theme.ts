@@ -26,12 +26,15 @@ export function ThemeProvider({ children, username }: { children: React.ReactNod
   useEffect(() => {
     if (username) {
       setIsLoadingColor(true);
+      console.log(`ThemeProvider: Loading accent color for ${username}`);
       getUserAccentColor(username)
         .then(color => {
+          console.log(`ThemeProvider: Got accent color: ${color}`);
           setAccentColorState(color);
           applyAccentColor(color);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('ThemeProvider: Error loading accent color:', err);
           // Keep default color on error
           applyAccentColor(DEFAULT_ACCENT_COLOR);
         })
@@ -39,12 +42,14 @@ export function ThemeProvider({ children, username }: { children: React.ReactNod
           setIsLoadingColor(false);
         });
     } else {
+      console.log('ThemeProvider: No username provided, using default color');
       setIsLoadingColor(false);
       applyAccentColor(DEFAULT_ACCENT_COLOR);
     }
   }, [username]);
 
   const setAccentColor = (color: string) => {
+    console.log(`ThemeProvider: Setting accent color to ${color}`);
     setAccentColorState(color);
     // Apply color immediately to CSS variables
     applyAccentColor(color);
