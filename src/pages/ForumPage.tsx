@@ -112,7 +112,7 @@ export function ForumPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin accent-text" />
       </div>);
 
   }
@@ -120,7 +120,7 @@ export function ForumPage() {
     return (
       <div className="text-center py-20">
         <p className="text-red-600 mb-4">{error || 'Forum not found'}</p>
-        <Link to="/" className="text-blue-600 hover:underline">
+        <Link to="/" className="link-accent hover:underline">
           &larr; Back to {t('boards')}
         </Link>
       </div>);
@@ -133,7 +133,7 @@ export function ForumPage() {
           <div>
             <Link
               to="/"
-              className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+              className="text-sm link-accent hover:underline mb-2 inline-block">
               
               &larr; {t('boards')}
             </Link>
@@ -145,7 +145,7 @@ export function ForumPage() {
           {user &&
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap">
+            className="flex items-center gap-2 px-4 py-2 btn-accent hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap">
             
               <Plus className="w-4 h-4" />
               {t('createTopic')}
@@ -187,7 +187,7 @@ export function ForumPage() {
             to={`/topic/${topic.id}`}
             className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
             
-                <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400 mb-2">
+                <h3 className="text-lg font-medium accent-text mb-2">
                   {topic.title}
                 </h3>
                 <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">

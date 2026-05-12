@@ -144,7 +144,7 @@ export function MarkdownEditor({
               onClick={() => setShowPreview(!showPreview)}
               className={`p-1.5 rounded transition-colors ${
                 showPreview
-                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  ? 'accent-text accent-bg'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
               title={showPreview ? t('hidePreview') : t('preview')}

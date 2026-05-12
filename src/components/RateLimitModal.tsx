@@ -52,8 +52,8 @@ export function RateLimitModal({ isOpen, onClose }: RateLimitModalProps) {
         {/* Content */}
         <div className="p-6">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-              <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="w-12 h-12 accent-bg rounded-full flex items-center justify-center flex-shrink-0">
+              <Shield className="w-6 h-6 accent-text" />
             </div>
             <div className="flex-1">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">

@@ -98,7 +98,7 @@ export function AuthPage() {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center text-blue-600 dark:text-blue-400">
+        <div className="flex justify-center accent-text">
           <MessageSquare className="w-12 h-12" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">

@@ -22,7 +22,7 @@ export function Layout() {
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link
             to="/"
-            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-xl">
+            className="flex items-center gap-2 accent-text font-bold text-xl">
             
             <MessageSquare className="w-6 h-6" />
             <span>Feekool</span>
@@ -36,7 +36,7 @@ export function Layout() {
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200 dark:border-gray-700">
                 <Link
                   to="/profile"
-                  className="flex items-center gap-2 text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium accent-text hover:opacity-80 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center overflow-hidden">
                     {user.avatar ? (
@@ -62,7 +62,7 @@ export function Layout() {
 
             <Link
               to="/auth"
-              className="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+              className="ml-4 px-4 py-2 btn-accent hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors">
               
                 {t('login')}
               </Link>

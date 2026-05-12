@@ -57,7 +57,7 @@ export function AdminPage() {
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
-          <Settings className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <Settings className="w-6 h-6 accent-text" />
           <div>
             <h2 className="text-lg font-semibold">Настройки сайта</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Изменения сохраняются локально в браузере.</p>
@@ -77,7 +77,7 @@ export function AdminPage() {
                 onChange={(event) =>
                   setSettings({ ...settings, maintenanceMode: event.target.checked })
                 }
-                className="h-5 w-5 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                className="h-5 w-5 accent-text rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
               />
             </label>
 
@@ -92,7 +92,7 @@ export function AdminPage() {
                 onChange={(event) =>
                   setSettings({ ...settings, allowSignups: event.target.checked })
                 }
-                className="h-5 w-5 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                className="h-5 w-5 accent-text rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
               />
             </label>
 
@@ -107,7 +107,7 @@ export function AdminPage() {
                 onChange={(event) =>
                   setSettings({ ...settings, showDaysSinceFirstPost: event.target.checked })
                 }
-                className="h-5 w-5 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                className="h-5 w-5 accent-text rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
               />
             </label>
           </div>

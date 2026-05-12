@@ -215,7 +215,7 @@ export function TopicPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin accent-text" />
       </div>);
 
   }
@@ -223,7 +223,7 @@ export function TopicPage() {
     return (
       <div className="text-center py-20">
         <p className="text-red-600 mb-4">{error || 'Topic not found'}</p>
-        <Link to="/" className="text-blue-600 hover:underline">
+        <Link to="/" className="link-accent hover:underline">
           &larr; Back to {t('home')}
         </Link>
       </div>);
@@ -234,7 +234,7 @@ export function TopicPage() {
       <div className="mb-6">
         <Link
           to={`/forum/${topic.forumSlug}`}
-          className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+          className="text-sm link-accent hover:underline mb-2 inline-block">
           
           &larr; Back to {t('topics')}
         </Link>

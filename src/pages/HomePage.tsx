@@ -68,7 +68,7 @@ export function HomePage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin accent-text" />
       </div>);
 
   }
@@ -76,7 +76,7 @@ export function HomePage() {
     return (
       <div className="text-center py-20">
         <p className="text-red-600 mb-4">{error}</p>
-        <button onClick={loadForums} className="text-blue-600 hover:underline">
+        <button onClick={loadForums} className="link-accent hover:underline">
           {t('retry')}
         </button>
       </div>);
@@ -108,9 +108,9 @@ export function HomePage() {
         <Link
           key={forum.slug}
           to={`/forum/${forum.slug}`}
-          className="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+          className="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:accent-border transition-colors">
           
-              <h2 className="text-xl font-semibold mb-2 text-blue-600 dark:text-blue-400">
+              <h2 className="text-xl font-semibold mb-2 accent-text">
                 {forum.title}
               </h2>
               <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2">
