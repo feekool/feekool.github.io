@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Palette, Check } from 'lucide-react';
-import { DEFAULT_ACCENT_COLORS, updateUserAccentColor } from '../lib/userSettings';
+import { DEFAULT_ACCENT_COLORS, updateUserAccentColor, getUserAccentColor } from '../lib/userSettings';
 import { useTheme } from '../lib/theme';
+import { useTranslation } from '../lib/i18n';
 import { safeLogError } from '../lib/utils';
 
 interface ColorPickerProps {
@@ -13,18 +14,25 @@ interface ColorPickerProps {
 
 export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
   const { accentColor, setAccentColor } = useTheme();
+  const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [customColor, setCustomColor] = useState(accentColor);
 
   const handleColorSelect = async (color: string) => {
+    // Apply color immediately for instant feedback
+    setAccentColor(color);
+    onColorChange?.(color);
+
     setIsSaving(true);
     try {
       await updateUserAccentColor(username, color);
-      setAccentColor(color);
-      onColorChange?.(color);
     } catch (error) {
       safeLogError('Error saving accent color:', error);
-      alert('Failed to save color preference. Please try again.');
+      // Revert color back to previous if save failed
+      const previousColor = await getUserAccentColor(username);
+      setAccentColor(previousColor);
+      onColorChange?.(previousColor);
+      alert(t('colorSaveError'));
     } finally {
       setIsSaving(false);
     }
@@ -43,13 +51,13 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
       <div className="flex items-center gap-2">
         <Palette className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-          Accent Color
+          {t('accentColor')}
         </h3>
       </div>
 
       <div className="space-y-3">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Choose your accent color that will be applied throughout the interface.
+          {t('accentColorDescription')}
         </p>
 
         {/* Preset colors */}
@@ -77,7 +85,7 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
         {/* Custom color picker */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Custom Color
+            {t('customColor')}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -98,7 +106,7 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
               disabled={isSaving || customColor === accentColor}
               className="px-4 py-2 btn-accent hover:opacity-90 disabled:opacity-50 text-white rounded-md transition-colors"
             >
-              {isSaving ? 'Saving...' : 'Apply'}
+              {isSaving ? t('savingColor') : t('apply')}
             </button>
           </div>
         </div>
@@ -111,10 +119,10 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
           />
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Current: {accentColor}
+              {t('currentColor')}: {accentColor}
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              This color is applied to buttons, links, and interactive elements
+              {t('colorAppliedTo')}
             </p>
           </div>
         </div>

@@ -35,6 +35,8 @@ const translations = {
     apply: 'Apply',
     currentColor: 'Current',
     colorAppliedTo: 'This color is applied to buttons, links, and interactive elements',
+    savingColor: 'Saving color...',
+    colorSaveError: 'Failed to save color preference. Color reverted to previous setting.',
     retry: 'Retry',
     by: 'by',
     joined: 'Joined',
@@ -126,7 +128,9 @@ const translations = {
     customColor: 'Пользовательский цвет',
     apply: 'Применить',
     currentColor: 'Текущий',
-    colorAppliedTo: 'Этот цвет применяется к кнопкам, ссылкам и интерактивным элементам'
+    colorAppliedTo: 'Этот цвет применяется к кнопкам, ссылкам и интерактивным элементам',
+    savingColor: 'Сохранение цвета...',
+    colorSaveError: 'Не удалось сохранить цвет. Цвет возвращен к предыдущей настройке.'
   }
 };
 
