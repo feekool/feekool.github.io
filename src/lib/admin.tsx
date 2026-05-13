@@ -19,13 +19,18 @@ export const defaultAdminSettings: AdminSettings = {
 };
 
 export async function loadAdminSettings(): Promise<AdminSettings> {
-  const file = await getFile(adminSettingsFile);
-  if (!file) {
+  try {
+    const file = await getFile(adminSettingsFile);
+    if (!file) {
+      return defaultAdminSettings;
+    }
+
+    const { data } = parseFrontmatter<AdminSettings>(file.content);
+    return { ...defaultAdminSettings, ...data };
+  } catch (error) {
+    console.error('Error loading admin settings, using defaults:', error);
     return defaultAdminSettings;
   }
-
-  const { data } = parseFrontmatter<AdminSettings>(file.content);
-  return { ...defaultAdminSettings, ...data };
 }
 
 export async function saveAdminSettings(settings: AdminSettings): Promise<void> {
@@ -54,6 +59,8 @@ export function AdminSettingsProvider({ children }: { children: React.ReactNode 
       })
       .catch((error) => {
         console.error('Failed to load admin settings:', error);
+        // Use default settings on error
+        setSettings(defaultAdminSettings);
       })
       .finally(() => {
         setIsLoading(false);

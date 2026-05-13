@@ -15,7 +15,7 @@ export function AuthPage() {
   const [isUsernameValid, setIsUsernameValid] = useState(true);
   const [usernameError, setUsernameError] = useState('');
   const { login, user } = useAuth();
-  const { settings } = useAdminSettings();
+  const { settings, isLoading: adminLoading } = useAdminSettings();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -64,11 +64,9 @@ export function AuthPage() {
       return;
     }
 
+    // Don't block on maintenance mode - let users login regardless
+    // Maintenance mode is just for display purposes on home page
     const normalizedUsername = username.trim().toLowerCase();
-    if (settings.maintenanceMode) {
-      setError(t('maintenanceMessage'));
-      return;
-    }
 
     setIsSubmitting(true);
     setError('');
