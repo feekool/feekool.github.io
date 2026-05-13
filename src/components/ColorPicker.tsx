@@ -68,17 +68,6 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
       setIsSaving(false);
     }
   };
-    } catch (error) {
-      safeLogError('Error saving accent color:', error);
-      // Revert color back to previous if save failed
-      const previousColor = await getUserAccentColor(username);
-      setAccentColor(previousColor);
-      onColorChange?.(previousColor);
-      alert(t('colorSaveError'));
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleCustomColorChange = (color: string) => {
     console.log(`Custom color input changed to: ${color}`);
