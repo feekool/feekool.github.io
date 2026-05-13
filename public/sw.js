@@ -90,7 +90,13 @@ async function handleGitHubWriteRequest(request) {
   try {
     const token = await getStoredToken();
     if (!token) {
-      throw new Error('No authentication token');
+      return new Response(JSON.stringify({
+        error: true,
+        message: 'Authentication required. Please set VITE_API_KEY.'
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Clone the request to add authorization headers

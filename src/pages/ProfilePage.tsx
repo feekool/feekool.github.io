@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Save, User as UserIcon, Calendar, Globe } from 'lucide-react';
-import { useAuth } from '../lib/auth';
+import { useTheme } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { putFile, getFile } from '../lib/github';
 import { stringifyFrontmatter, generateGravatarUrl, safeLogError } from '../lib/utils';
@@ -9,6 +9,7 @@ import { ColorPicker } from '../components/ColorPicker';
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -281,17 +282,62 @@ export function ProfilePage() {
             <label className="block text-sm font-medium mb-2">
               {t('language')}
             </label>
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600 dark:text-gray-400 capitalize">{user.lang}</span>
-            </div>
+            <select
+              value={user?.lang || 'en'}
+              onChange={async (e) => {
+                const newLang = e.target.value;
+                setIsSaving(true);
+                try {
+                  const updatedUser = { ...user!, lang: newLang };
+                  const content = stringifyFrontmatter(updatedUser, '');
+                  const existingFile = await getFile(`users/${user!.username}.md`);
+                  await putFile(`users/${user!.username}.md`, content, `Update language for ${user!.username}`, false, existingFile?.sha);
+                  localStorage.setItem('user', JSON.stringify(updatedUser));
+                  localStorage.setItem('lang', newLang);
+                  window.location.reload(); // Reload to apply language
+                } catch (error) {
+                  safeLogError('Error saving language:', error);
+                  alert('Failed to save language. Please try again.');
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+            >
+              <option value="en">English</option>
+              <option value="ru">Русский</option>
+            </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">
               {t('theme')}
             </label>
-            <span className="text-gray-600 dark:text-gray-400 capitalize">{user.theme}</span>
+            <select
+              value={theme}
+              onChange={(e) => {
+                const newTheme = e.target.value as 'light' | 'dark';
+                setTheme(newTheme);
+                // Update user file
+                const updateUserTheme = async () => {
+                  try {
+                    const updatedUser = { ...user!, theme: newTheme };
+                    const content = stringifyFrontmatter(updatedUser, '');
+                    const existingFile = await getFile(`users/${user!.username}.md`);
+                    await putFile(`users/${user!.username}.md`, content, `Update theme for ${user!.username}`, false, existingFile?.sha);
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                  } catch (error) {
+                    safeLogError('Error saving theme:', error);
+                    alert('Failed to save theme. Please try again.');
+                  }
+                };
+                updateUserTheme();
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+            >
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
           </div>
         </div>
 

@@ -63,8 +63,11 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
           lang: 'en',
           theme: 'light'
         };
-        const content = stringifyFrontmatter(userData, '');
-        await putFile(path, content, `Create user ${username}`);
+        // Only create file if token is available
+        if (config.github.token) {
+          const content = stringifyFrontmatter(userData, '');
+          await putFile(path, content, `Create user ${username}`);
+        }
       }
 
       // Create default settings file if it doesn't exist
@@ -76,12 +79,25 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
           accentColor: DEFAULT_ACCENT_COLOR,
           updatedAt: new Date().toISOString()
         };
-        const settingsContent = stringifyFrontmatter(defaultSettings, '');
-        await putFile(settingsPath, settingsContent, `Create settings for ${username}`);
+        // Only create if token is available
+        if (config.github.token) {
+          const settingsContent = stringifyFrontmatter(defaultSettings, '');
+          await putFile(settingsPath, settingsContent, `Create settings for ${username}`);
+        }
       }
 
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
+
+      // Apply user settings
+      localStorage.setItem('theme', userData.theme);
+      localStorage.setItem('lang', userData.lang);
+      // Apply theme class
+      if (userData.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     } finally {
       setIsLoading(false);
     }

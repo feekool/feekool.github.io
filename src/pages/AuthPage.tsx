@@ -65,7 +65,7 @@ export function AuthPage() {
     }
 
     const normalizedUsername = username.trim().toLowerCase();
-    if (settings.maintenanceMode && normalizedUsername !== 'admin') {
+    if (settings.maintenanceMode) {
       setError(t('maintenanceMessage'));
       return;
     }
@@ -73,14 +73,6 @@ export function AuthPage() {
     setIsSubmitting(true);
     setError('');
     try {
-      const path = `users/${normalizedUsername}.md`;
-      const userFile = await getFile(path);
-
-      if (!settings.allowSignups && !userFile && normalizedUsername !== 'admin') {
-        setError(t('signupsDisabled'));
-        return;
-      }
-
       await login(normalizedUsername);
       navigate('/');
     } catch (err: any) {
