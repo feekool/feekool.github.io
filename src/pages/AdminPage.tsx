@@ -22,10 +22,6 @@ export function AdminPage() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (user.username !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -48,9 +44,9 @@ export function AdminPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold">Админ-панель</h1>
+          <h1 className="text-2xl font-bold">Панель настроек</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Здесь доступны настройки только для пользователя <span className="font-semibold">admin</span>.
+            Здесь доступны настройки сайта.
           </p>
         </div>
       </div>

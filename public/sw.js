@@ -96,7 +96,10 @@ async function handleGitHubWriteRequest(request) {
     // Clone the request to add authorization headers
     const headers = new Headers(request.headers);
     headers.set('Accept', 'application/vnd.github.v3+json');
-    headers.set('Authorization', `Bearer ${token}`);
+    // Only set Authorization if not already present
+    if (!headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
     
     const authRequest = new Request(request, { headers });
     
@@ -134,7 +137,7 @@ async function handleGitHubWriteRequest(request) {
       error: true,
       message: error.message
     }), {
-      status: 500,
+      status: 401,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -148,7 +151,7 @@ async function handleGitHubReadRequest(request) {
     // Create request with authorization
     const headers = new Headers();
     headers.set('Accept', 'application/vnd.github.v3+json');
-    if (token) {
+    if (token && !request.headers.has('Authorization')) {
       headers.set('Authorization', `Bearer ${token}`);
     }
     

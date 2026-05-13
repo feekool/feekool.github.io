@@ -13,7 +13,9 @@ export const config = {
 };
 
 // Security validation
-if (config.github.token && !validateTokenSecurity(config.github.token)) {
+if (!config.github.token) {
+  console.warn('Warning: VITE_API_KEY is not set. GitHub API requests will fail. Please set your GitHub token in .env file.');
+} else if (!validateTokenSecurity(config.github.token)) {
   console.warn('Warning: GitHub token may not meet security requirements');
 }
 
