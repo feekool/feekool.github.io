@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Save, User as UserIcon, Calendar, Globe } from 'lucide-react';
+import { useAuth } from '../lib/auth';
 import { useTheme } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { putFile, getFile } from '../lib/github';

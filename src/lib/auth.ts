@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { config } from '../config/app';
 import { getFile, putFile } from './github';
 import { parseFrontmatter, stringifyFrontmatter, generateGravatarUrl } from './utils';
 import { swManager } from './serviceWorker';
