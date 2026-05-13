@@ -47,34 +47,55 @@ export function ProfilePage() {
       // Convert file to base64
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
+        try {
+          const base64 = e.target?.result as string;
 
-        // Generate unique filename
-        const fileName = `avatar-${user.username}-${Date.now()}.${file.type.split('/')[1]}`;
-        const path = `avatars/${fileName}`;
+          // Generate unique filename
+          const fileName = `avatar-${user.username}-${Date.now()}.${file.type.split('/')[1]}`;
+          const path = `avatars/${fileName}`;
 
-        // Upload to GitHub
-        await putFile(path, base64.split(',')[1], `Upload avatar for ${user.username}`, true);
+          // Upload to GitHub
+          await putFile(path, base64.split(',')[1], `Upload avatar for ${user.username}`, true);
 
-        // Update user profile
-        const updatedUser = {
-          ...user,
-          avatar: `https://raw.githubusercontent.com/feekool/feekool.github.io/master/avatars/${fileName}`
-        };
+          // Update user profile
+          const updatedUser = {
+            ...user,
+            avatar: `https://raw.githubusercontent.com/feekool/feekool.github.io/master/avatars/${fileName}`
+          };
 
-        const content = stringifyFrontmatter(updatedUser, '');
-        
-        // Get the current file with SHA to avoid 422 error
-        const userPath = `users/${user.username}.md`;
-        const existingFile = await getFile(userPath);
-        
-        await putFile(userPath, content, `Update profile for ${user.username}`, false, existingFile?.sha);
+          const content = stringifyFrontmatter(updatedUser, '');
+          
+          // Get the current file with SHA to avoid 422 error
+          const userPath = `users/${user.username}.md`;
+          let existingFile = null;
+          try {
+            existingFile = await getFile(userPath);
+          } catch (error: any) {
+            if (error.status !== 401 && error.status !== 404) {
+              throw error;
+            }
+          }
+          
+          try {
+            await putFile(userPath, content, `Update profile for ${user.username}`, false, existingFile?.sha);
+          } catch (error: any) {
+            if (error.status === 401) {
+              alert('GitHub token not configured. Avatar saved locally only. Set VITE_API_KEY to sync to GitHub.');
+            } else {
+              throw error;
+            }
+          }
 
-        // Update local storage
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+          // Update local storage
+          localStorage.setItem('user', JSON.stringify(updatedUser));
 
-        // Reload page to update avatar in UI
-        window.location.reload();
+          // Reload page to update avatar in UI
+          window.location.reload();
+        } catch (error) {
+          safeLogError('Error uploading avatar:', error);
+          alert('Failed to upload avatar. Make sure VITE_API_KEY is set.');
+          setIsUploading(false);
+        }
       };
 
       reader.readAsDataURL(file);
@@ -100,9 +121,24 @@ export function ProfilePage() {
       
       // Get the current file with SHA to avoid 422 error
       const userPath = `users/${user.username}.md`;
-      const existingFile = await getFile(userPath);
+      let existingFile = null;
+      try {
+        existingFile = await getFile(userPath);
+      } catch (error: any) {
+        if (error.status !== 401 && error.status !== 404) {
+          throw error;
+        }
+      }
       
-      await putFile(userPath, content, `Update profile for ${user.username}`, false, existingFile?.sha);
+      try {
+        await putFile(userPath, content, `Update profile for ${user.username}`, false, existingFile?.sha);
+      } catch (error: any) {
+        if (error.status === 401) {
+          alert('GitHub token not configured. Profile saved locally only. Set VITE_API_KEY to sync to GitHub.');
+        } else {
+          throw error;
+        }
+      }
 
       // Update local storage
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -131,9 +167,24 @@ export function ProfilePage() {
       
       // Get the current file with SHA to avoid 422 error
       const userPath = `users/${user.username}.md`;
-      const existingFile = await getFile(userPath);
+      let existingFile = null;
+      try {
+        existingFile = await getFile(userPath);
+      } catch (error: any) {
+        if (error.status !== 401 && error.status !== 404) {
+          throw error;
+        }
+      }
       
-      await putFile(userPath, content, `Reset avatar to Gravatar for ${user.username}`, false, existingFile?.sha);
+      try {
+        await putFile(userPath, content, `Reset avatar to Gravatar for ${user.username}`, false, existingFile?.sha);
+      } catch (error: any) {
+        if (error.status === 401) {
+          alert('GitHub token not configured. Avatar reset locally only. Set VITE_API_KEY to sync to GitHub.');
+        } else {
+          throw error;
+        }
+      }
       localStorage.setItem('user', JSON.stringify(updatedUser));
       window.location.reload();
     } catch (error) {
@@ -291,8 +342,24 @@ export function ProfilePage() {
                 try {
                   const updatedUser = { ...user!, lang: newLang };
                   const content = stringifyFrontmatter(updatedUser, '');
-                  const existingFile = await getFile(`users/${user!.username}.md`);
-                  await putFile(`users/${user!.username}.md`, content, `Update language for ${user!.username}`, false, existingFile?.sha);
+                  let existingFile = null;
+                  try {
+                    existingFile = await getFile(`users/${user!.username}.md`);
+                  } catch (error: any) {
+                    if (error.status !== 401 && error.status !== 404) {
+                      throw error;
+                    }
+                  }
+                  
+                  try {
+                    await putFile(`users/${user!.username}.md`, content, `Update language for ${user!.username}`, false, existingFile?.sha);
+                  } catch (error: any) {
+                    if (error.status === 401) {
+                      console.warn('Language saved locally only - GitHub token not configured.');
+                    } else {
+                      throw error;
+                    }
+                  }
                   localStorage.setItem('user', JSON.stringify(updatedUser));
                   localStorage.setItem('lang', newLang);
                   window.location.reload(); // Reload to apply language
@@ -324,9 +391,34 @@ export function ProfilePage() {
                   try {
                     const updatedUser = { ...user!, theme: newTheme };
                     const content = stringifyFrontmatter(updatedUser, '');
-                    const existingFile = await getFile(`users/${user!.username}.md`);
-                    await putFile(`users/${user!.username}.md`, content, `Update theme for ${user!.username}`, false, existingFile?.sha);
+                    let existingFile = null;
+                    try {
+                      existingFile = await getFile(`users/${user!.username}.md`);
+                    } catch (error: any) {
+                      if (error.status !== 401 && error.status !== 404) {
+                        throw error;
+                      }
+                    }
+                    
+                    try {
+                      await putFile(`users/${user!.username}.md`, content, `Update theme for ${user!.username}`, false, existingFile?.sha);
+                    } catch (error: any) {
+                      if (error.status === 401) {
+                        console.warn('Theme saved locally only - GitHub token not configured.');
+                      } else {
+                        throw error;
+                      }
+                    }
                     localStorage.setItem('user', JSON.stringify(updatedUser));
+                  } catch (error) {
+                    safeLogError('Error saving theme:', error);
+                    alert('Failed to save theme. Please try again.');
+                  }
+                };
+                updateUserTheme();
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+            >
                   } catch (error) {
                     safeLogError('Error saving theme:', error);
                     alert('Failed to save theme. Please try again.');

@@ -56,14 +56,17 @@ export function ColorPicker({ username, onColorChange }: ColorPickerProps) {
     try {
       await updateUserAccentColor(username, color);
       console.log(`Successfully saved accent color: ${color}`);
-    } catch (error) {
+    } catch (error: any) {
       safeLogError('Error saving accent color:', error);
-      // Revert color back to previous if save failed
-      const previousColor = await getUserAccentColor(username);
-      setAccentColor(previousColor);
-      setCustomColor(previousColor);
-      onColorChange?.(previousColor);
-      alert(t('colorSaveError'));
+      // Revert color back to previous if save failed (but not for 401)
+      if (error.status !== 401) {
+        const previousColor = await getUserAccentColor(username);
+        setAccentColor(previousColor);
+        setCustomColor(previousColor);
+        onColorChange?.(previousColor);
+        alert(t('colorSaveError'));
+      }
+      // For 401, keep the color but silently warn (handled in userSettings)
     } finally {
       setIsSaving(false);
     }

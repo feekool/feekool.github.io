@@ -45,7 +45,22 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
     setIsLoading(true);
     try {
       const path = `users/${username}.md`;
-      const file = await getFile(path);
+      let file = null;
+      
+      // Try to fetch user file if token is available
+      try {
+        if (config.github.token) {
+          file = await getFile(path);
+        }
+      } catch (error: any) {
+        // Treat 401/404 as user not found - this is OK
+        if (error.status === 401 || error.status === 404) {
+          file = null;
+        } else {
+          // Only throw other errors
+          throw error;
+        }
+      }
 
       let userData: User;
       let isNewUser = false;
@@ -73,7 +88,19 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
 
       // Create default settings file if it doesn't exist
       const settingsPath = `users/${username}-settings.md`;
-      const settingsFile = await getFile(settingsPath);
+      let settingsFile = null;
+      
+      // Try to fetch settings file if token is available
+      try {
+        if (config.github.token) {
+          settingsFile = await getFile(settingsPath);
+        }
+      } catch (error: any) {
+        // Treat 401/404 as settings not found - this is OK
+        if (error.status === 401 || error.status === 404) {
+          settingsFile = null;
+        }
+      }
       
       if (!settingsFile) {
         const defaultSettings = {

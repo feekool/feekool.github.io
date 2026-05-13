@@ -50,14 +50,34 @@ export async function saveUserSettings(username: string, settings: UserSettings)
     const path = `users/${username}-settings.md`;
     const content = stringifyFrontmatter(settings, '');
     
-    // Get the current file with SHA to avoid 422 error
-    const existingFile = await getFile(path);
+    // Try to get the current file with SHA to avoid 422 error
+    let existingFile = null;
+    try {
+      existingFile = await getFile(path);
+    } catch (error: any) {
+      if (error.status !== 401 && error.status !== 404) {
+        throw error;
+      }
+    }
     
-    await putFile(path, content, `Update settings for ${username}`, false, existingFile?.sha);
+    // Try to save, but don't fail if token is missing
+    try {
+      await putFile(path, content, `Update settings for ${username}`, false, existingFile?.sha);
+    } catch (error: any) {
+      if (error.status === 401) {
+        console.warn('GitHub token not configured. Settings saved locally only.');
+      } else {
+        throw error;
+      }
+    }
     
     // Clear cache to ensure fresh data on next load
     if (typeof clearGitHubApiCache === 'function') {
-      await clearGitHubApiCache();
+      try {
+        await clearGitHubApiCache();
+      } catch (e) {
+        // Ignore cache clear errors
+      }
     }
   } catch (error) {
     safeLogError('Error saving user settings:', error);
