@@ -4,6 +4,7 @@ import { MessageSquare, LogOut, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
 import { OfflineIndicator } from './OfflineIndicator';
+import { SyncQueueIndicator } from './SyncQueueIndicator';
 import { useAuth } from '../lib/auth';
 import { useAdminSettings } from '../lib/admin';
 import { useTranslation } from '../lib/i18n';
@@ -88,6 +89,7 @@ export function Layout() {
       </main>
 
       <OfflineIndicator />
+      <SyncQueueIndicator />
     </div>);
 
 }

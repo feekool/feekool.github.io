@@ -7,6 +7,8 @@ const GITHUB_API_BASE = 'https://api.github.com';
 const GITHUB_API_CACHE = 'github-api-cache-v3';
 const STATIC_CACHE = 'static-cache-v3';
 const EXTERNAL_CACHE = 'external-cache-v2';
+const TOKEN_DB = 'GitHubTokenDB';
+const QUEUE_DB = 'OfflineQueueDB';
 const TOKEN_STORE = 'github-token-store';
 const OFFLINE_QUEUE_STORE = 'offline-queue-store';
 
@@ -89,12 +91,19 @@ self.addEventListener('fetch', (event) => {
 async function handleGitHubWriteRequest(request) {
   try {
     const token = await getStoredToken();
+    
+    // If no token, queue the request for later (401 handling)
     if (!token) {
+      await queueOfflineRequest(request);
       return new Response(JSON.stringify({
-        error: true,
-        message: 'Authentication required. Please set VITE_API_KEY.'
+        queued: true,
+        message: 'Request queued - authentication required',
+        reason: 'no-auth',
+        originalUrl: request.url,
+        method: request.method
       }), {
-        status: 401,
+        status: 202,
+        statusText: 'Accepted',
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -118,17 +127,35 @@ async function handleGitHubWriteRequest(request) {
       return response;
     }
     
+    // If 401 (token expired or invalid), queue the request for later
+    if (response.status === 401) {
+      console.log('Received 401, queuing request for later retry');
+      await queueOfflineRequest(request);
+      return new Response(JSON.stringify({
+        queued: true,
+        message: 'Request queued - authentication failed',
+        reason: 'auth-failed',
+        originalUrl: request.url,
+        method: request.method
+      }), {
+        status: 202,
+        statusText: 'Accepted',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     
   } catch (error) {
     console.error('Write request failed:', error);
     
-    // If offline or error, queue the request for later
+    // If offline, queue the request for later
     if (!navigator.onLine || error.message.includes('Failed to fetch')) {
       await queueOfflineRequest(request);
       return new Response(JSON.stringify({
         queued: true,
-        message: 'Request queued for offline sync',
+        message: 'Request queued - network unavailable',
+        reason: 'offline',
         originalUrl: request.url,
         method: request.method
       }), {
@@ -143,7 +170,7 @@ async function handleGitHubWriteRequest(request) {
       error: true,
       message: error.message
     }), {
-      status: 401,
+      status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -349,7 +376,7 @@ async function syncOfflineRequests() {
   try {
     const token = await getStoredToken();
     if (!token) {
-      console.log('No token available for sync');
+      console.log('No token available for sync, queue remains');
       return;
     }
     
@@ -357,6 +384,9 @@ async function syncOfflineRequests() {
     const pendingRequests = await getAllPendingRequests(db);
     
     console.log(`Found ${pendingRequests.length} pending requests to sync`);
+    
+    let successCount = 0;
+    let failedRequests = [];
     
     for (const request of pendingRequests) {
       try {
@@ -379,6 +409,7 @@ async function syncOfflineRequests() {
         if (response.ok) {
           // Remove from queue on success
           await deletePendingRequest(db, request.id);
+          successCount++;
           console.log('Synced request:', request.url);
           
           // Notify clients
@@ -387,17 +418,38 @@ async function syncOfflineRequests() {
             client.postMessage({
               type: 'REQUEST_SYNCED',
               url: request.url,
-              method: request.method
+              method: request.method,
+              status: response.status
             });
           });
+        } else if (response.status === 401) {
+          // 401 means token is still invalid, keep in queue
+          console.log('Token still invalid (401), keeping request in queue:', request.url);
+          if (request.retries < 1) {
+            await updateRetryCount(db, request.id, request.retries + 1);
+          }
+          failedRequests.push(request);
         } else if (request.retries < 3) {
-          // Increment retry count and keep in queue
+          // Increment retry count and keep in queue for other errors
           await updateRetryCount(db, request.id, request.retries + 1);
           console.log(`Retry ${request.retries + 1} for:`, request.url);
+          failedRequests.push(request);
         } else {
-          // Max retries exceeded, remove from queue
+          // Max retries exceeded, remove from queue and notify
           await deletePendingRequest(db, request.id);
           console.error('Max retries exceeded for:', request.url);
+          failedRequests.push(request);
+          
+          // Notify clients about failure
+          const clients = await self.clients.matchAll();
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'REQUEST_SYNC_FAILED',
+              url: request.url,
+              method: request.method,
+              reason: 'max-retries'
+            });
+          });
         }
         
       } catch (error) {
@@ -405,11 +457,24 @@ async function syncOfflineRequests() {
         
         if (request.retries >= 3) {
           await deletePendingRequest(db, request.id);
+          failedRequests.push(request);
         } else {
           await updateRetryCount(db, request.id, request.retries + 1);
+          failedRequests.push(request);
         }
       }
     }
+    
+    // Notify clients about sync completion
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SYNC_COMPLETE',
+        successCount,
+        failedCount: failedRequests.length,
+        totalCount: pendingRequests.length
+      });
+    });
     
   } catch (error) {
     console.error('Sync failed:', error);
@@ -541,8 +606,18 @@ self.addEventListener('message', (event) => {
   const { data } = event;
   
   if (data && data.type === 'SET_TOKEN') {
-    storeToken(data.token);
+    storeToken(data.token).then(() => {
+      // After storing token, try to flush the queue
+      console.log('Token stored, attempting to flush queue');
+      syncOfflineRequests().catch(err => {
+        console.error('Failed to flush queue after token:', err);
+      });
+    });
   } 
+  else if (data && data.type === 'FLUSH_QUEUE') {
+    console.log('Flush queue requested');
+    event.waitUntil(syncOfflineRequests());
+  }
   else if (data && data.type === 'CLEAR_CACHE') {
     Promise.all([
       caches.delete(GITHUB_API_CACHE),
@@ -562,6 +637,13 @@ self.addEventListener('message', (event) => {
       const transaction = db.transaction([TOKEN_STORE], 'readwrite');
       const store = transaction.objectStore(TOKEN_STORE);
       store.delete('github-token');
+      
+      // Notify clients
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'TOKEN_CLEARED' });
+        });
+      });
     });
   }
   else if (data && data.type === 'REFRESH_CACHE') {

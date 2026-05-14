@@ -419,15 +419,6 @@ export function ProfilePage() {
               }}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
             >
-                  } catch (error) {
-                    safeLogError('Error saving theme:', error);
-                    alert('Failed to save theme. Please try again.');
-                  }
-                };
-                updateUserTheme();
-              }}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
-            >
               <option value="light">Light</option>
               <option value="dark">Dark</option>
             </select>

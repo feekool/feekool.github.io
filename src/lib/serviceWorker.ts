@@ -1,10 +1,21 @@
 // Service Worker Manager
 // Handles registration and secure token storage in IndexedDB
 
+interface QueuedRequest {
+  id: string;
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body: string | null;
+  timestamp: number;
+  retries: number;
+}
+
 class ServiceWorkerManager {
   private registration: ServiceWorkerRegistration | null = null;
   private pendingToken: string | null = null;
   private pendingCacheClear = false;
+  private messageCallbacks: Map<string, (data: any) => void> = new Map();
 
   async register(): Promise<void> {
     if (!('serviceWorker' in navigator)) {
@@ -118,14 +129,121 @@ class ServiceWorkerManager {
     }
   }
 
-  private handleMessage(event: MessageEvent): void {
-    if (event.data?.type === 'CACHE_CLEARED') {
-      console.log('Service worker cache cleared');
+  /**
+   * Flush offline queue - attempt to sync all queued requests
+   */
+  async flushQueue(): Promise<void> {
+    if (!this.registration?.active) {
+      console.warn('Service worker not active, cannot flush queue');
       return;
     }
-    // Handle messages from service worker if needed
-    if (event.data?.type === 'TOKEN_STORED') {
+
+    try {
+      this.registration.active.postMessage({
+        type: 'FLUSH_QUEUE'
+      });
+      console.log('Flush queue command sent to service worker');
+    } catch (error) {
+      console.error('Failed to flush queue:', error);
+    }
+  }
+
+  /**
+   * Get queued requests from service worker
+   */
+  async getQueuedRequests(): Promise<QueuedRequest[]> {
+    if (!this.registration?.active) {
+      console.warn('Service worker not active, cannot get queued requests');
+      return [];
+    }
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        this.messageCallbacks.delete('QUEUED_REQUESTS');
+        resolve([]);
+      }, 5000); // 5 second timeout
+
+      this.messageCallbacks.set('QUEUED_REQUESTS', (data: any) => {
+        clearTimeout(timeout);
+        this.messageCallbacks.delete('QUEUED_REQUESTS');
+        resolve(data.requests || []);
+      });
+
+      try {
+        this.registration.active.postMessage({
+          type: 'GET_QUEUED_REQUESTS'
+        });
+      } catch (error) {
+        console.error('Failed to get queued requests:', error);
+        clearTimeout(timeout);
+        this.messageCallbacks.delete('QUEUED_REQUESTS');
+        resolve([]);
+      }
+    });
+  }
+
+  /**
+   * Register callback for sync events
+   */
+  onSyncComplete(callback: (data: any) => void): () => void {
+    const listener = (event: MessageEvent) => {
+      if (event.data?.type === 'SYNC_COMPLETE') {
+        callback(event.data);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', listener);
+
+    // Return unsubscribe function
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', listener);
+    };
+  }
+
+  /**
+   * Register callback for request sync events
+   */
+  onRequestSynced(callback: (data: any) => void): () => void {
+    const listener = (event: MessageEvent) => {
+      if (event.data?.type === 'REQUEST_SYNCED') {
+        callback(event.data);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', listener);
+
+    // Return unsubscribe function
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', listener);
+    };
+  }
+
+  private handleMessage(event: MessageEvent): void {
+    const { data } = event;
+
+    if (!data || !data.type) return;
+
+    // Handle callbacks
+    if (this.messageCallbacks.has(data.type)) {
+      const callback = this.messageCallbacks.get(data.type);
+      if (callback) {
+        callback(data);
+      }
+    }
+
+    // Handle specific message types
+    if (data.type === 'CACHE_CLEARED') {
+      console.log('Service worker cache cleared');
+    } else if (data.type === 'TOKEN_STORED') {
       console.log('Token successfully stored in service worker');
+    } else if (data.type === 'TOKEN_CLEARED') {
+      console.log('Token cleared from service worker');
+    } else if (data.type === 'SYNC_COMPLETE') {
+      console.log(`Sync complete: ${data.successCount} succeeded, ${data.failedCount} failed`);
+    } else if (data.type === 'REQUEST_SYNCED') {
+      console.log(`Request synced: ${data.method} ${data.url}`);
+    } else if (data.type === 'REQUEST_SYNC_FAILED') {
+      console.warn(`Request sync failed: ${data.method} ${data.url} - ${data.reason}`);
     }
   }
 

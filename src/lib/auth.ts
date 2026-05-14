@@ -126,6 +126,19 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
       } else {
         document.documentElement.classList.remove('dark');
       }
+
+      // After successful login, send token to SW and flush queue
+      if (config.github.token && navigator.serviceWorker?.controller) {
+        try {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SET_TOKEN',
+            token: config.github.token
+          });
+          console.log('Token sent to service worker');
+        } catch (error) {
+          console.error('Failed to send token to service worker:', error);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
